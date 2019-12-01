@@ -1,0 +1,318 @@
+<chapter xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xi="http://www.w3.org/2001/XInclude" version="5.0" xml:lang="hu">
+  <info>
+    <title>Helló, Liskov!</title>
+    <keywordset>
+      <keyword/>
+    </keywordset>
+  </info>
+
+  <section>
+    <title>Liskov helyettesítés sértése </title>
+    <para>
+      Ebben a feladatban a madarak segítségével meg fogjuk sérteni a Liskov elvet. De a kódunk le fordul és le is fut akkor tulajdonkppen itt mi a hiba? Az, hogy amint látjuk a forráskódból a Pingvin osztály örökli a repülést is hiszen azt beleépítettük a madár osztályba és így a programunk röptetni fogja a madarat ami rossz hiszen a valóságban a Pingvin egy röpképtelen madár. És mi nem várnánk el a Pingvintől ,hogy erre képes legyen. Az ilyen hibák hibás működéshez szoktak vezetni amiket az okát nehéz megtalálni. Ezt legegyszerűbben úgy tudjuk megoldani, hogy elkülönítjök a repülést a Madár osztálytól. Lesznek a sima madaraink és a repülő madaraink és így elkülönül a repülés és így az fgv-re már nem lehet meghívni a reptető függvényt.
+    </para>
+    <para>A C++ Változat
+    <programlisting language="C++">
+      <![CDATA[   
+#include <iostream>
+
+using namespace std;
+
+class Madar {
+public:
+	virtual void repul() { cout << "Ezaz repulok!" << endl; };
+};
+
+class Program {
+public:
+     void fgv ( Madar &madar ) {
+          madar.repul();
+     }
+};
+
+class Sas : public Madar
+{};
+
+class Pingvin : public Madar 
+{};
+
+int main ( int argc, char **argv )
+{
+     Program program;
+     Madar madar;
+     program.fgv ( madar );
+
+     Sas sas;
+     program.fgv ( sas );
+
+     Pingvin pingvin;
+     program.fgv ( pingvin ); 
+
+}
+]]>
+    </programlisting>
+  </para>
+    <para>Az áttervezett verzió.
+    <programlisting language="C++">
+      <![CDATA[   
+
+class Madar {
+
+};
+
+class Program {
+public:
+     void fgv ( Madar &madar ) {
+     }
+};
+
+class RepuloMadar : public Madar {
+public:
+     virtual void repul() {};
+};
+
+class Sas : public RepuloMadar
+{};
+
+class Pingvin : public Madar 
+{};
+
+int main ( int argc, char **argv )
+{
+     Program program;
+     Madar madar;
+     program.fgv ( madar );
+
+     Sas sas;
+     program.fgv ( sas );
+
+     Pingvin pingvin;
+     program.fgv ( pingvin );
+
+}
+]]>
+    </programlisting>
+  
+ </para>
+    <para>A Javás megolás ami sért.
+    <programlisting language="JAVA">
+      <![CDATA[class Madar {
+	void repul() { };
+};
+
+class Program {
+     void fgv ( Madar madar ) {
+          madar.repul();
+     }
+};
+
+class Sas extends Madar
+{};
+
+class Pingvin extends Madar 
+{};
+
+class lsiskovsert{
+
+public static void main ( String[] args )
+{
+     Program liskov = new Program();
+     Madar madarr = new Madar();
+     liskov.fgv ( madarr );
+
+     Sas sass = new Sas();
+     liskov.fgv ( sass );
+
+     Pingvin pingvinn = new Pingvin();
+     liskov.fgv ( pingvinn );
+
+}}]]>
+    </programlisting></para>
+    <para>
+        <mediaobject>
+        <imageobject>
+            <imagedata fileref="liskov.png" scale="40" align="left"></imagedata>
+        </imageobject>
+    </mediaobject>
+</para>
+  </section>
+
+  <section>
+    <title>Szülő-gyerek</title>
+    <para>
+    </para>
+    <para>
+      Ebben a feladatban az öröklés folyamatát mégpedig egy igen egyszerű java és c++ kóddal. A C++ kóddal kezdjük.
+    </para>
+    <para><programlisting language="C++">
+      <![CDATA[   
+#include <iostream>
+
+using namespace std;
+
+class Szulo
+{
+public:
+	void szulo_vagyok() {
+		cout << "Szia én vagyok a szulő" << endl;
+	}
+
+};
+
+class Gyerek : public Szulo {
+
+public:
+	void gyerek_vagyok() { cout << "Szia én vagyok a gyerek" << endl; }
+
+};
+
+int main() {
+
+	Szulo apa;
+	apa.szulo_vagyok();
+	// apa.gyerek_vagyok(); Ha ezt a programsor nem lennek kommentelve akkor nem fordulna le a program.
+
+	Gyerek pista;
+	pista.szulo_vagyok();
+	pista.gyerek_vagyok();
+}
+]]>
+    </programlisting>
+    </para>
+    <para> Akkor szokutunk származtatott osztályokat használni ha van egy tágabb csoportunk ezek legyenek modjuk az állatok ezen belül lehetnek modjuk az emlősök. Az ős osztály szokta tartalamzni az általánosabb leírást és a gyereke a specifikusabb dolgokat. A C++-ban : utáni osztály a szülő osztály angolul base class valamint az előtte lévő a származtatott osztály a gyerek angolul a Derived class.  Hozzunk létre egy osztályt stílusosan szülő néven amiben létrehoztunk egy public függvényt ami ki fog írni a kimenetre. Ezek után készítünk egy Gyerek osztályt ami örökölni fogja a szülő funkcióit. : operátorral történik az örökítés itt most public öröklődést használtunk, de lehet protected valamint private öröklődés is. A main függvényben pedig plédányosítunk és meghívjuk az egyedekre az függvényeket. Láthatjuk, hogy a gyerek képes használni a saját függvényeit valamint az őséjét is. Viszont az ős nem tudja használni a gyerekét ami logikus hiszen a valóságban sem tudják használni az emlősök az emer tulajdonságait viszont fordítva igen. </para>
+    <para></para>
+    <para>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="szulo-gyerek.png" scale="70" align="left"></imagedata>
+        </imageobject>
+      </mediaobject>
+    </para>
+    <para>Viszont ha a fent említett kommentes részt is beel akarnánk venni azt tapasztaljuk, hogy a program nem fordul le.</para>
+    <para>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="nemfordul.png" scale="70" align="left"></imagedata>
+        </imageobject>
+      </mediaobject>
+    </para>
+    <para>Most nézzük meg ezt a példát javába átültetve. Javában öröklődést az extends kulcsszóval lehet elérni. Itt is ugyan úgy viselkednek a függvényhívások tehát az ős csak a saját függvényeit tudja kezelni viszont a gyerek képes mindkettő kezelésére.</para>
+    <para>
+      <programlisting language="JAVA">
+        <![CDATA[   
+class Szulo {         
+    public void szulo_vagyok() {                     
+    System.out.println("En vagyok a szulo hehehe");
+  }
+}
+
+class Gyerek extends Szulo {
+  public void gyerek_vagyok(){System.out.println("En vagyok a gyerek hehehe");}
+  public static void main(String[] args) {
+
+    Szulo apa = new Szulo();
+    Gyerek pista = new Gyerek();
+
+    apa.szulo_vagyok();
+    // apa.gyerek_vagyok(); // Itt is ugyanúgy reagál rá a fordító.
+    pista.szulo_vagyok();
+    pista.gyerek_vagyok();
+
+  }
+}
+]]>
+      </programlisting>
+    </para>
+  </section>
+
+  <section>
+    <title>Anti OO</title>
+    <para></para>
+    <para>Egy táblázatban hasonlítjuk össze a futási időket.</para>
+    <para>A táblázatból kiolvasható, hogy a legjobban a java nyelv teljesített ez valószínüleg az alapból bekapcsolt gyorsításoknak köszönhető amiket a nyelv tartalmaz. Ezért gyorsabban fut le mint az optimalizálatlan C valamint C# kód. </para>
+    <para>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="meres.png" scale="50" align="center"></imagedata>
+        </imageobject>
+      </mediaobject> 
+    </para>
+    <para>
+        <mediaobject>
+        <imageobject>
+            <imagedata fileref="banch.png" scale="40" align="center"></imagedata>
+        </imageobject>
+    </mediaobject>
+</para>
+  </section>
+
+  <section>
+    <title>Hello, Android!</title>
+    <para></para>
+    <para>Ebben a feladatban az alkalmazás felélesztéséhez android stúdiót fogunk használni. Az alap project beimportálása és futtatása nem volt lehetséges ezért egy teljesen új projectbe fogjuk belerakni a fájlokat méghozzá egy új empty activity-be. A fájlok importálásának folyamatát képekben mutatom meg.</para>
+    <para>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="1ststep.png" scale="40" align="left"></imagedata>
+        </imageobject>
+      </mediaobject>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="2ndstep.png" scale="50" align="left"></imagedata>
+        </imageobject>
+      </mediaobject>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="3rdstep.png" scale="40" align="left"></imagedata>
+        </imageobject>
+      </mediaobject>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="4thstep.png" scale="50" align="left"></imagedata>
+        </imageobject>
+      </mediaobject>
+    </para>
+    <para>A már ott lévő alapból legenerált fájlokat törölhetjük. Miután ezzel elkészültünk még apró módosításokra van szükség az activity_smniste3.xml-en valamint az AndroidManifest.xml-en. Utóbbinak a 12. sorát át kell írni a MainActivity-t SMNISTE3Activity-re. Az activity_smniste3.xml ben pedig a 7. sort kell módosítani, hogy átlinkeljük a régi fájlokat az új projecthez. És azt játjuk, hogy már működik is és a kis virtuális telefonunkon működik is a program. </para>
+    <para>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="5thstep.png" scale="35" align="center"></imagedata>
+        </imageobject>
+      </mediaobject>
+    </para>
+    <para>Ezek után már csak kissebb módosításokat kell elvégezni a programban legyenek mondjuk ezek a feladat leírásában szereplő színek. Ezek az SMNISTSurfaceView-ban találhatóak. </para>
+    <para>      
+      <programlisting language="JAVA">
+        <![CDATA[   
+    int[] bgColor =
+            {
+                    Color.rgb(49, 54, 59),
+                    Color.rgb(35, 38, 41)
+            };
+]]>
+      </programlisting></para>
+    <para>A 74-78. sorokba található kódrészlet a váltakozó háttérszínért felelős itt a színek rgbkódját megadva változtathatunk. A többi színt a 358-370. sorban találjuk. Itt át kell írnunk a pontok után szereplő színneveket másra. És ez lett a végeredmény. A módosítható értékek nevét kiírtam a képre.</para>
+    <para>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="6thstep.png" scale="50" align="center"></imagedata>
+        </imageobject>
+      </mediaobject> 
+    </para>
+  
+  </section>
+
+  <section>
+    <title>Ciklomatikus komplexitás </title>
+    <para></para>
+    <para>A Ciklomatikus komplexitás azt adjam eg a kódunkról, hogy mennyire egyszerően, tömören lett megírva minnél alacsonyabb az értéke annál jobb. Egy jó programmodulnál ez az érték kissebb mint 10. Ha ez az érték meglahadja a 10-et akkor el kell gondolkoznunk a kódunk egyszerüsítésén hiszen egy szeretágazó, bonyolult kódot nehéz értelmezni, módosítani valamint karbantartani. Ha ez az érték nagyon magas akkor azon is el kell gondolkodnunk, hogy újratervezzük/újraírjuk ez az egészet. Rövid kódoknál a számolást akár mi is elvégezhetjük, de egy hosszú programnál érdemes erre külön programot használni. Kézi számítás esetén mindíg 1 től indulunk. Minden metódusban található futással kapcsolatos elem. Minden return-nél ami nem a metódus legutolsó része. Elágaztatásoknál, loopoknál operátoroknál és kivételeknél 1-et adunk hozzá. Mi egy online eszkötz fogunk alkalmazni mégpedig a http://www.lizard.ws/#try-t ide illesztjük be a javás binfa forráskódját és a következő eredményt kaptuk.</para>
+    <para>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="binfacompexitás.png" scale="70" align="center"></imagedata>
+        </imageobject>
+      </mediaobject>
+    </para>
+  </section>
+  
+</chapter>

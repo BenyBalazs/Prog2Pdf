@@ -1,0 +1,365 @@
+<chapter xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xi="http://www.w3.org/2001/XInclude" version="5.0" xml:lang="hu">
+    <info>
+        <title>Helló,Lauda!</title>
+        <keywordset>
+            <keyword/>
+        </keywordset>
+    </info>
+
+    <section>
+        <title>PortScan</title>
+      <para></para>
+      <programlisting language="java">
+        <![CDATA[
+        public class KapuSzkenner {
+    
+          public static void main(String[] args) {
+              
+              for(int i=0; i<1024; ++i)
+                  
+                  try {
+                      
+                      java.net.Socket socket = new java.net.Socket(args[0], i);
+                      System.out.println(i + " figyeli");
+                      socket.close();
+                      
+                  } catch (Exception e) {
+                      
+                      SSystem.out.println(e.toString() + " " + i + " Nem Figyel");
+                      
+                  }
+          }
+          
+      }
+            ]]>
+      </programlisting>
+      <para>Ez a program végig fogja nézni a parancssori argumentumként kapott IP portjait egyesével. Amennyiben sikerült a kpcsolatot létrehozni akkor a try block sikeresen lefutott. Ezek után kiírjuk, hogy az adott port figyelve van majd, hogy ne tartsuk lefoglalva be is zárjuk a kapcsolatot. Azomban ha nem sikerül lefutni akkor a java.net.Socket kivételt dob. A következő kivételt dobja: java.net.ConnectException: Connection refused (Connection refused). Ez sok mindent jelenthet többek között azt, hogy egy olyan portra akarunk csatlakozni amit nem figyel egy folyamat sem. Lényeg, hogy localhost-ra futassuk a programot mert mert más szerverről a rengeteg gyors egymás utáni kérés miatt nagy valószínüséggel le fognak tiltani.</para>
+      <para>A program futtatva localhost-ra.</para>
+      <para>
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="portscan.png" scale="60" align="center"></imagedata>
+          </imageobject>
+        </mediaobject>
+      </para>
+    </section> 
+  
+      <section>
+        <title>AOP</title>
+        <para></para>
+        <para>AspectJ-s szövéssel kellett a binfába belenírni, hogy preorder és postorderbe is lefusson. Ehez Eclipset használtam amihez egy kiegészítőt kell telepíteni és már lehet is aspectj-s projectet létrehozni. A parancssori argumentumokat amit kért azt a runconfiguratornál írtam be.</para>
+      
+          <programlisting language="java">
+          <![CDATA[
+          package szoves;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+
+	public aspect szoves {
+	
+		int melyseg = 0;
+		public pointcut kiir(LZWBinFa.Csomopont elem, java.io.PrintWriter os)
+		: call(public void kiir(LZWBinFa.Csomopont, java.io.PrintWriter)) && args(elem,os);
+   	
+	after (LZWBinFa.Csomopont elem, java.io.PrintWriter os) : kiir(elem,os)
+		{
+		try {
+			preOrder(elem,new PrintWriter("pre-order.txt"));
+		} catch (FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		melyseg = 0;
+		try {
+			postOrder(elem,new PrintWriter("post-order.txt"));
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    }
+    ]]></programlisting>
+    <para>Láthatjuk, hogy a szövésünk a binfa kiir függvényt fogja keresi. Ez az illeszkedés lesz a pointcut. A call utasítás fogja meghívni az általunk megírt függvényt. Azt szeretnénk, hogy az eredeti függvény után fusson le a szőtt függvény ezért ezeket after kulcsszó után írjuk. Az új fabejárásokat külön fájlba fogjuk kimenteni. Miután az egyik fabejárás lefutott a mélységet ismételten 0-ra állítjuk be. A pre a és a post order fabejárásokat Prog1-en már tárgyaltunk szóval arra külön nem térnék ki.</para>
+  
+  
+    <programlisting language="java">
+        <![CDATA[
+    public void preOrder(LZWBinFa.Csomopont elem, java.io.PrintWriter os){
+		
+		if (elem != null) {
+
+		      for (int i = 0; i < melyseg; ++i) {
+		        os.print("---");
+		      }
+		      os.print(elem.getBetu());
+		      os.print("(");
+		      os.print(melyseg - 1);
+		      os.println(")");
+		      ++melyseg;
+		      preOrder(elem.egyesGyermek(), os);
+		      preOrder(elem.nullasGyermek(), os);
+		      --melyseg;
+		      os.flush();
+		    }
+	}
+	
+	public void postOrder(LZWBinFa.Csomopont elem, java.io.PrintWriter os){
+		
+		if (elem != null) {
+		      ++melyseg;
+		      postOrder(elem.egyesGyermek(), os);
+		      postOrder(elem.nullasGyermek(), os);
+		      --melyseg;
+		 
+		      for (int i = 0; i < melyseg; ++i) {
+		        os.print("---");
+		      }
+		      os.print(elem.getBetu());
+		      os.print("(");
+		      os.print(melyseg - 1);
+		      os.println(")");
+		      os.flush();
+
+		    }
+	}
+}
+
+              ]]></programlisting>
+              <para>
+                  <mediaobject>
+                    <imageobject>
+                      <imagedata fileref="szoves.png" scale="20" align="center"></imagedata>
+                    </imageobject>
+                  </mediaobject>
+                </para>
+    </section>
+    
+    <section>
+        <title>Android Játék</title>
+        <para></para>
+        <para>Ebben a feladatban egy android játék megalkotása volt a lényeg. Én egy egyszerű akasztófát csináltam. A játék elészítéséhez android stúdiót használtam. Az egész program ez az 1 layoutot használja</para>
+        <para>Nézzük is a a program kezelőfelületét.</para>
+        <para>
+          <mediaobject>
+            <imageobject>
+              <imagedata fileref="android_jatek_layout.png" scale="20" align="center"></imagedata>
+            </imageobject>
+          </mediaobject>
+        </para>
+        <para>Most merüljünk bele a kódba.</para>
+        <programlisting language="java">
+          <![CDATA[public class MainActivity extends AppCompatActivity {
+
+            ArrayList<Character> vonalak = new ArrayList<>();
+            int Lifes = 5;
+            String amostaniszo;
+            List<String> Words = new ArrayList<>();
+              ]]>
+        </programlisting>
+        <para>A programban használt változók deklarálása. A vonalak-ban lesznek tárolva a vonalak valamint ezt fogjuk majd módosítani miközbe a játékos betűket talál ki. A Words-be a txt-ből beolvasott összes szó benne van.</para>
+              <programlisting language="java">
+                <![CDATA[
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                setContentView(R.layout.activity_main);
+        
+                final Button Game_start = (Button)findViewById(R.id.Game_Start);
+                final Button Restart = (Button)findViewById(R.id.restart);
+                final Button Quit = (Button)findViewById(R.id.quit);
+                final EditText char_imput = findViewById(R.id.Char_imput);
+                final TextView Word = findViewById(R.id.word);
+                final TextView Result = findViewById(R.id.result);
+                final TextView Elet = findViewById(R.id.elet);
+                ]]>
+              </programlisting>
+              <para>UI elementek deklarálása az oncreate függvénybe, hogy később tudjunk rá eventeket csinálni.</para>
+                    <programlisting language="java">
+                      <![CDATA[
+                Game_start.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Game_start.setVisibility(View.INVISIBLE);
+                        char_imput.setVisibility(View.VISIBLE);
+                        Elet.setVisibility(View.VISIBLE);
+                        Elet.setText("Elet: " + Lifes);
+                        ReadWords(Words);
+                        amostaniszo = getWord(Words);
+                        Set_LinesFirs(amostaniszo,Word,vonalak);
+        
+                    }
+                });
+        
+                ]]>
+              </programlisting>
+              <para>A játék elkezdése gomb megnyomására eltünik a gomb és megjelenik maga a játék beolvassuk a szavakat utána randomra választunk egy szót majd az utolsó függvény annyi vonalat fog rajzolni a képernyőre amennyi betűs a szó.</para>
+                    <programlisting language="java">
+                      <![CDATA[
+        
+                Restart.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Lifes = 5;
+                        Restart.setVisibility(View.INVISIBLE);
+                        char_imput.setVisibility(View.VISIBLE);
+                        Elet.setVisibility(View.VISIBLE);
+                        Elet.setText("Elet: " + Lifes);
+                        Word.setText(" ");
+                        Result.setVisibility(View.INVISIBLE);
+                        amostaniszo = getWord(Words);
+                        Set_LinesFirs(amostaniszo,Word,vonalak);
+                    }
+                });
+                ]]>
+              </programlisting>
+              <para>Vereség vagy győzelem után a playernek lehetősége van új játékot indítani. Ebben az esetben mindent resetelünk a kezdőállapotba és új szót választunk.</para>
+                    <programlisting language="java">
+                      <![CDATA[
+        
+                Quit.setOnClickListener(new View.OnClickListener(){
+                    @Override
+                    public void onClick(View v) {
+                        finish();
+                        System.exit(0);
+                    }
+                });
+                ]]>
+              </programlisting>
+              <para>Egyszerű kilépésgomb. Megnyomáskor leállítja a programot.</para>
+                    <programlisting language="java">
+                      <![CDATA[
+                    char_imput.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Character currend = char_imput.getText().toString().charAt(0);
+                            char_imput.setText(" ");
+                            Compare(amostaniszo, currend, Word, vonalak);
+                            Elet.setText("Elet: " + Lifes);
+                            if (Lifes == 0) {
+                                char_imput.setVisibility(View.INVISIBLE);
+                                Restart.setVisibility(View.VISIBLE);
+                                Word.setText("Game Over");
+                                Result.setVisibility(View.VISIBLE);
+                                Result.setText(amostaniszo);
+                            } else if (!(vonalak.contains('_'))){
+                                char_imput.setVisibility(View.INVISIBLE);
+                                Restart.setVisibility(View.VISIBLE);
+                                Word.setText("Win");
+                                Result.setVisibility(View.VISIBLE);
+                                Result.setText(amostaniszo);
+                            }
+                        }
+                    });
+            }
+        
+            ]]>
+          </programlisting>
+          <para>Ez a fő része itt olvasuk be a karakreteket itt hívódik meg a Compare() függvény ami lényegében a játék lelke. A játék addig fog menni amég el nem fogy a játékos élete ekkor vereség lesz. Amikor elfogy a vonalak ArrayListből a _ az azt jelent, hogy a játékos nyert vagyis kitallta a szót. OonClickListenert deklaráltunk ezért ez akkor fog aktiválodni, ha a játékos entert üt a billentyűzeten. Minden enterütés után törölni kell a mező tartalmát. </para>
+                <programlisting language="java">
+                  <![CDATA[
+        
+            public void Compare(String szo, Character currant, TextView Word, ArrayList<Character> vonalak){
+                boolean match = false;
+                for (int i = 0; i< szo.length();++i){
+        
+                    if(szo.charAt(i) == currant){
+                        match = true;
+                        vonalak.set(i,currant);
+                    }
+                }
+        
+                if (match == false){
+                    Lifes -= 1;
+                }
+        
+                Word.setText("");
+                for (int i=0; i<szo.length();++i){
+                    Word.append(vonalak.get(i).toString() + " ");
+                }
+            }
+            ]]>
+          </programlisting>
+          <para>A játék fő része. Az elején létrehozunk egy bool változót ez fogja megmondani, hogy kitaláltuk e a betűt vagy sem. A forciklussal végigmegyünk és minden lehetséges előfordulásnál kicsréljük a betűket valamint feljegyezzük, hogy volt találat tehát nem kell életerőt levonni. Ha nem volt találat levonjuk az életerőt. A végén Megjelenítjük a telefonon a Változásokat. </para>
+                <programlisting language="java">
+                  <![CDATA[
+        
+            public String getWord(List<String> Word){
+        
+                Random random = new Random();
+                int number = random.nextInt(Word.size());
+                return Word.get(number);
+            }
+            ]]>
+          </programlisting>
+          <para>Randomra választ egy szót a listáról.</para>
+                <programlisting language="java">
+                  <![CDATA[
+            public void Set_LinesFirs(String word, TextView Word, ArrayList<Character> vonalak){
+        
+                for(int i =0; i < word.length();++i){
+                    vonalak.add(i,'_');
+                }
+        
+                for(int i =0; i < word.length();++i){
+                    Word.append(vonalak.get(i).toString() + " ");
+                }
+            }
+            ]]>
+          </programlisting>
+          <para>RAzért felelős, hogy a play gomb megnyomása után kirajzolja a vonalakat a telefonra és az arraylistbe is betölti azokat.</para>
+                <programlisting language="java">
+                  <![CDATA[
+            public void ReadWords(List<String> Words){
+        
+                try{
+                    Scanner be = new Scanner(getAssets().open("szavak.txt"));
+                    while(be.hasNext()){
+                        Words.add(be.nextLine());
+                    }
+        
+                }catch (Exception e){e.fillInStackTrace();}
+            }]]>
+        </programlisting>
+        <para>A resources mappában található szavak.txt-t olvassa be és tölti bele az arraylistbe.</para>
+        <para>
+          <mediaobject>
+            <imageobject>
+              <imagedata fileref="jatek.png" scale="60" align="center"></imagedata>
+            </imageobject>
+          </mediaobject>
+        </para>
+    </section>                                                                                                                                                                                                                                                                                                                                                                                      <section>
+      <title>Junit teszt</title>
+      <para></para>
+      <para>A feladat megolásáshoz Eclipse-et használtam. Erre le lehet tölteni egy jó kiegészítőt amivel gyorsan el lehet végezni a junittesztet. A meglévő binfa project mellé készítünk egy junitteszt fájlt. És ezt futtatjuk a run as menü seg ítségével, ha a teszt a várt eredményekkel végződik akkor megkajuk, hogy minden tökéletes ha pedig nem akkor megkapjuk a hivákat.</para>
+      <programlisting language="java">
+        <![CDATA[
+        package junit;
+
+        import static org.junit.jupiter.api.Assertions.*;
+        
+        import org.junit.jupiter.api.Test;
+        
+        public class BinfaTest {
+          LZWBinFa binfa = new LZWBinFa();
+          @org.junit.Test
+          public void tesBitFeldolg() {
+            for (char c : "01111001001001000111".toCharArray()) {
+                binfa.egyBitFeldolg(c);
+            }
+            org.junit.Assert.assertEquals(4, binfa.getMelyseg(), 0.0);
+            org.junit.Assert.assertEquals(2.75, binfa.getAtlag(), 0.001);
+            org.junit.Assert.assertEquals(0.957427, binfa.getSzoras(), 0.0001);
+            }
+        }]]>
+</programlisting>
+<para>A kód elején példányosítjuk az LZWBinFa osztályt. A forciklussal feldolgozzuk a karaktereket a binfafüggvényét használjuk hozzá. A sok számot konveráljuk karaktertömbé és az éppen aktuális karaktert átadja a binfa függvényének. Miután ez megtörtént az AssetEquals metódushoz kerülnek az adatok. Ennek a metódusnak az első értéke az, hogy mit várunk eredményül a 2 az, hogy melyik függvénytől várjuk azt a bizonyos eredményt a harmedik meg a hibahatár annyi eltérést enged meg a teszt. Ha nem eggyezik akkor sikertelen lesz a teszt. </para>
+
+<para>
+    <mediaobject>
+    <imageobject>
+        <imagedata fileref="junittesztrun.png" scale="25" align="left"></imagedata>
+    </imageobject>
+</mediaobject>
+</para>
+    </section>                                                                                                                                                                                                                                                                                                                             
+</chapter>                

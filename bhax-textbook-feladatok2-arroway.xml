@@ -1,0 +1,323 @@
+<chapter xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xi="http://www.w3.org/2001/XInclude" version="5.0" xml:lang="hu">
+    <info>
+        <title>Helló, Arroway!</title>
+        <keywordset>
+            <keyword/>
+        </keywordset>
+    </info>
+
+    <section>
+        <title>OO szemlélet</title>
+        <para>
+        </para>
+      <para><programlisting language="JAVA"><![CDATA[
+public class polargen {
+
+    boolean nincsTarolt = true;
+    double tarolt;
+
+    public polargen() {
+        nincsTarolt = true;
+    }
+
+    public double kovetkezo(){
+        if(nincsTarolt){
+            double u1, u2, v1, v2, w;
+            do{
+                u1 = Math.random();
+                u2 = Math.random();
+                v1 = 2 * u1 - 1;
+                v2 = 2 * u2 - 1;
+                w = v1 * v1 + v2 * v2;
+            } while(w > 1);
+            double r = Math.sqrt((-2 * Math.log(w)) / w);
+            tarolt = r * v2;
+            nincsTarolt = !nincsTarolt;
+            return r * v1;
+        }
+        else {
+            nincsTarolt = !nincsTarolt;
+            return tarolt;
+        }
+    }
+
+
+
+    public static void main(String[] args){
+        polargen g = new polargen();
+        for (int i = 0; i < 10; ++i){
+            System.out.println(g.kovetkezo());
+        }
+    }
+}
+
+]]></programlisting>
+     </para>
+        <para>
+            Még mielőtt összevetnénk a mi kódunkat a Java sdk-ban találhatóval azelőtt ejtsünk egy-két szót magáról a kódról és az objektum orientált programozásról.
+        </para>
+        <para>
+            Az objektum orientáltásg azért fontos mert így sokkal bonyolultabb problémákat le tud ítni a programozó sokkal egyszerűbben, olvashatóbban. 3 alapelve van : egységbe zárás, adatrajtés és öröklés. 
+        </para>
+      <para>
+        Ebben a programkódban az egységbe zárás elvét tudjuk szemléltetni, hiszen az osztályunk public és semmelyik sem örököl. Tehát itt most minden változót és függvényt a polargen classunk tartalmazza.
+      </para>
+      <para>
+        A kódunk pseudo random számokat generál és írja ki a standard outra. A számolást azt a kovetkezo() függvény végzi, amit meg is hívunk a példányra a maintben. A függvény kiszámok 2 random számot az eggyiket eltárolja, feljegyzi, hogy van egy tárolt értékünk és a másik számot pedig visszatéríti ami ki is ír a kimenetre. A függvény újbóli meghívása esetén pedig feljegyezzük, hogy már nincs tárolt érték valamint az előzőelg kiszámolt értéket visszaadja ami szintén kiírásra kerül. Ez azért jó mert így a processzorunk kevesebbszer számolja végig a képletet. 
+      </para>
+      <para>A porgram futás közben.</para>
+      <para><mediaobject>
+            <imageobject>
+                <imagedata fileref="polargen-java.png" scale="40" align="left"></imagedata>
+            </imageobject>
+        </mediaobject></para>
+      <para>
+          
+      </para>
+            <para><programlisting language="JAVA"><![CDATA[
+    synchronized public double nextGaussian() {
+        // See Knuth, ACP, Section 3.4.1 Algorithm C.
+        if (haveNextNextGaussian) {
+            haveNextNextGaussian = false;
+            return nextNextGaussian;
+        } else {
+            double v1, v2, s;
+            do {
+                v1 = 2 * nextDouble() - 1; // between -1 and 1
+                v2 = 2 * nextDouble() - 1; // between -1 and 1
+                s = v1 * v1 + v2 * v2;
+            } while (s >= 1 || s == 0);
+            double multiplier = StrictMath.sqrt(-2 * StrictMath.log(s)/s);
+            nextNextGaussian = v2 * multiplier;
+            haveNextNextGaussian = true;
+            return v1 * multiplier;
+        }
+    }
+
+]]></programlisting>
+     </para>
+      <para>
+       Most nézzük meg, hogy mi a külömbség a mi kódunk és az SDK-ban található között. Az 1. szembetűnő külömbség a class nevében van hiszen itt synchronized public double-t használ. Ez azért jó mert ha többszálas munkakörnyezetben előfordulhat, hogy több szál is megpróbál ugyan arra az adatra ráfrissíteni ezt védhetjük ki a  synchronized kulcsszó használatával ezzel a kulcsszóval megjelölt függvényben egyszerre csak egy szál fut. A másik lényeges külömbség a strictmath és a math között található. A kettő között az a külömbség, hogy a strictmath megköveteli, hogy minden sestben ugyan az legyen a végeredmény pl. más rendszeren lefutattva is. A sima math függvénynél hasonlót de nem feltétlenül mindíg ugyan azt téríti vissza és a sima math enged platofrmspecifikus implementációkat mint pl. a x86 floating point használata.
+      </para>
+    </section> 
+
+        <section>
+        <title>„Gagyi”</title>
+        <para>
+        </para>
+        <para><programlisting language="JAVA"><![CDATA[
+class Gagyi
+  {
+
+	  public static void main(String[] args)
+	    {
+		    Integer x = -127;
+		    Integer t = -127; 
+		    System.out.println(x);
+		    System.out.println(t);
+		    while (x <= t && x >= t && t != x);
+	    }
+  }
+]]></programlisting>
+        </para>
+        <para>
+            Ebben a példában a java sdk-ban található Integer Wrapper class-t fogjuk használni. Ez több mozgásteret enged a sima inthez képest ami csak a számok bineáris értékét tárolja. Integer-re osztály révén hívhatunk meg függvényeket pl. megfordíthatjuk a reverse() fügvénnyel. Nézzük meg, hogy a fenti Integer deklarálásunkat a fordító, hogyan olvassa. Az integer x = -300-at a következőképpen: Integer x = Integer.valueOf(-300). Alapértelmezetten a javában 127 és -127 között gyorsítótárazva vannak a számok hiszen ezeket gyakran használják, ebből kövezkezik ha a megadott értékekk között hozunk létre változókat azoknak az értéke ugyanarra a gyorsítótárazott objektumra fog mutatni ezért az összehasonlításoknál a várt eredményt fogjuk megkapni. Azomban ha ezen értékek fölé vagy alá megyünk akkor már új objektumot hoz létre a java, aminek a memóriacíme is más lesz. Ez eredményezi azt, hogy ha a fent említett értékekk közül veszünk 2 ugyan olyan számot akkor nem lépünk be a ciklusba viszont ha túlmegyünk az értékhatáron akkor már belépünk mert nem az Integer értékét hasonlítja össze a Java. Erre természeresen erre a problémára van megoldás az .intValue() függvénnyel ki lehet küszöbölni és akkor már az értékek lesznek összehasonlítva.
+        </para>
+        <para>
+          Az Integer gyorsítótára így néz ki.
+        </para>
+        <para><programlisting language="JAVA"><![CDATA[
+private static class IntegerCache {
+        static final int low = -128;
+        static final int high;
+        static final Integer cache[];
+ 
+        static {
+            // high value may be configured by property
+            int h = 127;
+            String integerCacheHighPropValue =
+                sun.misc.VM.getSavedProperty("java.lang.Integer.IntegerCache.high");
+            if (integerCacheHighPropValue != null) {
+                try {
+                    int i = parseInt(integerCacheHighPropValue);
+                    i = Math.max(i, 127);
+                    // Maximum array size is Integer.MAX_VALUE
+                    h = Math.min(i, Integer.MAX_VALUE - (-low) -1);
+                } catch( NumberFormatException nfe) {
+                    // If the property cannot be parsed into an int, ignore it.
+                }
+            }
+            high = h;
+ 
+            cache = new Integer[(high - low) + 1];
+            int j = low;
+            for(int k = 0; k < cache.length; k++)
+                cache[k] = new Integer(j++);
+ 
+            // range [-128, 127] must be interned (JLS7 5.1.7)
+            assert IntegerCache.high >= 127;
+        }
+ 
+        private IntegerCache() {}
+    }
+]]></programlisting>
+        </para>
+
+        <para>
+            <mediaobject>
+            <imageobject>
+                <imagedata fileref="gagyi.png" scale="40" align="left"></imagedata>
+            </imageobject>
+        </mediaobject>
+    </para>
+    </section>  
+
+    <section>
+        <title>Yoda</title>
+        <para>
+            Először is nézzük meg, hogy mi fán terem a Yoda conditions. A lényeg, hogy a kifejezések a megszokotnál fordított sorrendben kerülnek leírásra tehát pl a változó a jobb oldalon és a konstans a bal oldalon. Ez az elnevezés a StarWars filmből ered hiszen itt az angol verzióban Yoda fordítva beszél. Ezze nézzünk is egy példát.
+        </para>
+      <para>
+        <programlisting language="JAVA">
+          <![CDATA[
+          int szam = 2;
+          if (3 > szam);
+        ]]></programlisting>
+      </para>
+      <para>így néz ki a Yoda condition a gyakorlatban. A Yoda condition használtaával ki lehet védeni tipikus porgramozási hibákat mint pl. amikor véletlenül az egyenlő-e? operátpr helyett a legyen egyenlő! operátort használjuk a feltételekben </para>
+       <para>
+        <programlisting language="JAVA">
+          <![CDATA[
+          int szam = 2;
+          if (3 = szam); //Ez fordítási hibát eredményez mert nem lehet a 3 számot egyenlővé tenni semmivel.
+]]>
+        </programlisting>
+      </para>
+      <para>Ezek után nézzük meg, hogy melyik kód is lép ki NullPointerException-el ha nem követjük Yoda stílusát.</para>
+      <para><programlisting language="JAVA">
+          <![CDATA[
+          String semmi = null;
+          if (semmi.equals("foobar"));
+]]>
+        </programlisting>
+      </para>
+      <para>Ez a kód fordítási hibához fog vezetni hiszen ez hasonló a matamatikában a nullával való osztáshoz. Viszont Yoda-ban ez a kód lefordul és le is fut és a végeredmény  várt hamis lesz.</para>
+      <para>Sokan azt tanácsolják, hogy ha lehet ne használjuk ezt hiszen a rosszul == helyetti = jelre a legtöbb fordító felhívja a figyelmet. Yoda conditions-t hasznélunk akkor könnyen előfordulhat, hogy rosz helyre bekerül egy nullpointer ami később nem várt viselkedéshez vezethet. </para>
+      <para>
+            <mediaobject>
+            <imageobject>
+                <imagedata fileref="yodafordul.png" scale="40" align="left"></imagedata>
+            </imageobject>
+        </mediaobject>
+    </para>
+    </section>
+    
+    <section>
+        <title>Kódolás from scratch</title>
+        <para></para>
+      <para>
+    A programunknak az a lényege, hogy a példányosítástól kapott érték + 1 től kezdi el számolni a PI tizedesjegyeit úgy, hogy a programnak semmit tudomása nincs arról, hogy mitk az előtte lévő tizedesjegyek. Az alábbi kódban pl a kiszámolt 1. 6 jegy lesz pontos.
+    </para>
+        
+       <programlisting language="JAVA"><![CDATA[
+       public class PiBBP {
+       
+    String d16PiHexaJegyek;
+
+    public PiBBP(int d) {
+        
+        double d16Pi = 0.0d;
+        
+        double d16S1t = d16Sj(d, 1);
+        double d16S4t = d16Sj(d, 4);
+        double d16S5t = d16Sj(d, 5);
+        double d16S6t = d16Sj(d, 6);
+        
+        d16Pi = 4.0d*d16S1t - 2.0d*d16S4t - d16S5t - d16S6t;
+        
+        d16Pi = d16Pi - StrictMath.floor(d16Pi);
+        
+        StringBuffer sb = new StringBuffer();
+        
+        Character hexaJegyek[] = {'A', 'B', 'C', 'D', 'E', 'F'};
+        
+        while(d16Pi != 0.0d) {
+            
+            int jegy = (int)StrictMath.floor(16.0d*d16Pi);
+            
+            if(jegy<10)
+                sb.append(jegy);
+            else
+                sb.append(hexaJegyek[jegy-10]);
+            
+            d16Pi = (16.0d*d16Pi) - StrictMath.floor(16.0d*d16Pi);
+        }
+        
+        d16PiHexaJegyek = sb.toString();
+    }
+    
+]]></programlisting>
+      <para>A PiBBP függvényben számoljuk ki magát a képletet. A StrictMath.floor() floor függvény a kapott számtól lefelé visszaadja a számhoz legközelebb álló egészet pl. a 2.9-ből pl 2-t ad vissza egész számok esetén nem történik semmi. Csinálunk egy stringbuffert amibe majd szépen lassan fogjuk beletölteni a kiszámolt jegyeinket. Létrehozunk egy tömböt ami majd a hexa karaktereink lesznek. A while ciklusban pedig megtörténik maga az az átváltás és a hozzáfűzás ha az adott szám kissebb mint 10 akkor egyszerűen hozzáadjuk a bufferhez ha pedig nagyobb akkor meg kivonunk belőle 10-et és a tömbben a megfelefő helyen álló betűt fűzzük hozzá a bufferhez a .append() főggvénnyel. Végén pedig áttöltjük a buffert magába a string változóba.</para>
+<programlisting language="JAVA">
+      <![CDATA[     
+    public double d16Sj(int d, int j) { 
+        
+        double d16Sj = 0.0d;
+        
+        for(int k=0; k<=d; ++k)
+            d16Sj += (double)n16modk(d-k, 8*k + j) / (double)(8*k + j);
+        
+        return d16Sj - StrictMath.floor(d16Sj);
+    }
+    public long n16modk(int n, int k) { 
+        
+        int t = 1;
+        while(t <= n)
+            t *= 2;
+        
+        long r = 1;
+        
+        while(true) {
+            
+            if(n >= t) {
+                r = (16*r) % k;
+                n = n - t;
+            }
+            
+            t = t/2;
+            
+            if(t < 1)
+                break;
+            
+            r = (r*r) % k;
+            
+        }
+        
+        return r;
+    }
+    ]]>
+ </programlisting>
+      <para>A public double d16Sj() függvény végzi a könyv 4. oldalán található S1 S2 S3 S4 számok kiszámtását amihez segítségül fogja hjvni az alatta található függvényt is ami bineáris hatványozást végez. </para>
+ <programlisting language="JAVA"><![CDATA[   
+    public String toString() {
+        
+        return d16PiHexaJegyek;
+    }
+    public static void main(String args[]) {        
+        System.out.print(new PiBBP(1000000)); 
+    }
+}
+]]></programlisting>
+
+      <para>
+            Az utolsó függvény visszaadja majd magát a kiiratni kívánt PI hexa karaktereket a bufferből. A mainben egy kiiratásba ágyazott példányosítás történik és mivel 1m-t írtunk be ezért a kiiratás 1m+1-től fog majd indulni.
+        </para>
+      <para>A program futás közben</para>
+      <para><mediaobject>
+         <imageobject>
+            <imagedata fileref="PiBBP.png" scale="70" align="left"></imagedata>
+         </imageobject>
+      </mediaobject></para>
+    
+    </section>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+</chapter>                

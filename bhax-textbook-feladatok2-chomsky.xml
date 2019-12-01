@@ -1,0 +1,286 @@
+<chapter xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xi="http://www.w3.org/2001/XInclude" version="5.0" xml:lang="hu">
+    <info>
+        <title>Helló, Chomsky!</title>
+        <keywordset>
+            <keyword/>
+        </keywordset>
+    </info>
+
+    <section>
+        <title>Encoding</title>
+        <para></para>
+      <para>Láthatjuk ha megnyitjuk a kódunkat egy szerkesztővel akkor láthatjuk, hogy alapból nem ismeri fel a magyar ékezetes karaktereket ezért alapból nem is fog lefordulni. Éppen ezért fordítani sem tudjuk hiszen alapból nem fogja felismerni a karaktereket mert UTF-8-ban nincs lekódolva. Erre használjuk a -encoding kapcsolót amivel megadhatjuk a nekünk passzoló karakterkészletet ami jelen esetben az ISO-8859-1 lesz. Tehát ez lesz a helyes fordítási parancs <command>javac -encoding "ISO-8859-1" MandelbrotIterációk.java MandelbrotHalmazNagyító.java</command> amivel hiba nélkül le fog fordulni valamint futni.
+    </para>
+      <para>
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="hibaskarakterek.png" scale="50" align="center"></imagedata>
+          </imageobject>
+        </mediaobject>
+      </para>
+      <para>
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="encodingerror.png" scale="50" align="center"></imagedata>
+          </imageobject>
+        </mediaobject>
+      </para>
+      <para>
+          <mediaobject>
+          <imageobject>
+              <imagedata fileref="encoding.png" scale="25" align="left"></imagedata>
+          </imageobject>
+      </mediaobject>
+    </para>
+    </section>
+        <section>
+        <title>Paszigráfia Rapszódia OpenGL full screen vizualizáció</title>
+        <para></para>
+          <para>Először is szükségünk lesz a <![CDATA[<GL/glut.h>]]> könyvtárra amit ubuntun a következő parancsal szerezhetünk be: <command>sudo apt-get install libglu1-mesa-dev freeglut3-dev mesa-common-dev</command>. A program 1.rendű logikai nyelvben megfogalmazható mondatokat vizualizálja. Az irányítás kezdetben nem volt kézreálló, hiszen az ellentétes irányokba fordult a kocka a gomb lenyomásakor ezért ezen módosítottam. A módisított irányítás kódja. </para>
+          <programlisting language="JAVA">
+            <![CDATA[void skeyboard ( int key, int x, int y )
+{
+        if ( key == GLUT_KEY_UP ) {
+			    cubeLetters[index].rotx -= 5.0;
+        } else if ( key == GLUT_KEY_DOWN ) {
+                cubeLetters[index].rotx += 5.0;
+        } else if ( key == GLUT_KEY_RIGHT ) {
+			cubeLetters[index].roty += 5.0;
+        } else if ( key == GLUT_KEY_LEFT ) {
+                 cubeLetters[index].roty -= 5.0;
+        } else if ( key == GLUT_KEY_PAGE_UP ) {
+			cubeLetters[index].rotz -= 5.0;
+        } else if ( key == GLUT_KEY_PAGE_DOWN ) {
+                 cubeLetters[index].rotz += 5.0;
+        }
+
+        glutPostRedisplay();
+}	]]>
+          </programlisting>
+          <para>Most folytassuk a színek elkülönítésével. A program 66. sora erre módosult: glColor3f ( 200.818f, 5.900f, 130.824f ); A 188. sor ere glColor3f ( 30.309f, 30.820f, 30.150f ); valamint a 220. sor erre: glColor3f ( 50.804f, 50.820f, 50.150f );</para>
+          <para>
+              <mediaobject>
+              <imageobject>
+                  <imagedata fileref="rapszodia.png" scale="25" align="left"></imagedata>
+              </imageobject>
+          </mediaobject>
+      </para>
+    </section>
+
+  <section>
+    <title>Teljes képernyős java program</title>
+    <para></para>
+    <para>A teljes képernyős porgram megvalósításához írni kell egy képernyőkezelőt ami most nekünk a screen.java lesz.</para>
+    <para>
+      <programlisting language="JAVA">
+        <![CDATA[   
+import java.awt.*;
+//import java.awt.image.BufferStrategy;
+//import java.awt.image.BufferedImage;
+//import java.lang.reflect.InvocationTargetException;
+import javax.swing.JFrame;
+
+public class screen {
+	private GraphicsDevice video_card; //Videókártya létrehozása
+	
+	public screen() 
+	{
+		GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		video_card = env.getDefaultScreenDevice(); //elkapjuk a videókártyát
+	}
+	]]>
+      </programlisting>
+    </para>
+    <para>A programunk megírásához szükésgünk lesz az Abstract Window Toolkit-re (awt) amiből mindent bekérünk. Példányosítjuk a GraphicsDevice osztályt ami megmondja, hogy az adott környezetben mik érhetőek el. Utána a képernyőnk tulajdonságait lekérjük az env-be majd a GraphicsDevice objektumunknak megadjuk az alapértelmezett grafikai eszköz adatait.  </para>
+    <para><programlisting language="JAVA">
+        <![CDATA[    
+	public void setFullScreen(DisplayMode dm, JFrame window) 
+	
+	{
+		
+			window.setUndecorated(true); //nem lesz titlebar meg scrollebar
+			window.setResizable(false); //nem lehet átméretezni
+			video_card.setFullScreenWindow(window);
+			
+			if( dm !=null && video_card.isDisplayChangeSupported()) //van monitorbeállításunk és azokat lehet is állítani
+				{
+				
+				try {video_card.setDisplayMode(dm);} catch(Exception ex) {}
+				}
+	}
+	
+				
+	public Window getFullScreenWindow() //A tényleges függvény ami majd teljes képernyőt fog nekünk állítani.
+	{
+		return video_card.getFullScreenWindow();
+	}
+	
+	public void restoreScreen() { //A függvény ami levesz minket a teljes képernyőről.
+		Window w = video_card.getFullScreenWindow();
+		if(w != null) {
+			w.dispose();
+		}
+		video_card.setFullScreenWindow(null);
+	}
+}
+]]></programlisting>
+    </para>
+    <para>
+      <programlisting language="JAVA">
+        <![CDATA[ 
+import java.awt.*;
+// import java.awt.event.*; //később az egérhez kell majd a továbbfejlesztéshez.
+import javax.swing.*;
+
+public class fulscreen extends JFrame { 
+	
+	public static void main (String[] args) 
+	{
+		DisplayMode dm = new DisplayMode(800,600,16, DisplayMode.REFRESH_RATE_UNKNOWN); //Megadjuk a képernyő adatain szélesség magasság, színmélység és ő magának lekéri, hogyhány Hz-n frissül a képernyő.
+		fulscreen f = new fulscreen();
+		f.run (dm); 
+	}
+	
+	
+	public void run (DisplayMode dm) {
+		
+		getContentPane().setBackground(Color.PINK); //Háttérszín
+		getContentPane().setForeground(Color.WHITE); //Előtérszín
+		getContentPane().setFont(new Font("Arial", Font.PLAIN, 500)); //Betűtípus beállítása
+		
+		screen s = new screen(); //Képernyőosztály példányosítása
+		try {
+			s.setFullScreen(dm, this); //Ezt beállítjuk teljes képernyőre a dm-ben lévő beállításokkal.
+			try {
+				Thread.sleep(5000);
+			}catch (Exception ex) {}
+	}finally {
+		s.restoreScreen(); //Végül kilépünk a teljes képernyőből.
+	}
+	}
+	
+	public void paint(Graphics g) { //Ez kiir egy feliratot a képernyőre 
+		super.paint(g);
+		// g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON); // anti aliasing-elni próbáltam a szöveget de nem igen ment.
+		g.drawString("Felirat", 200, 200);
+	}
+}]]>
+    </programlisting>
+  </para>
+  <para>
+      <mediaobject>
+      <imageobject>
+          <imagedata fileref="fullscreen.png" scale="25" align="left"></imagedata>
+      </imageobject>
+  </mediaobject>
+</para>
+  </section>
+  
+  <section>
+    <title>l334d1c45</title>
+    <para>Javában lekészítettük a l33t chipper osztályt.</para>
+      <programlisting language="JAVA">
+        <![CDATA[ 
+import java.io.BufferedReader; // Kell a buffer létrehozásához
+import java.io.IOException; // Kivételkezeléshez
+import java.io.InputStreamReader; // Beolvasás
+import java.util.HashMap; //karaktertérkép létrehozásához
+import java.util.regex.Matcher; //Összepárosító
+import java.util.regex.Pattern; //Karakterminta
+
+class L33tConvertor {
+
+    private String toLeetCode(String str) {
+        Pattern pattern = Pattern.compile("[^a-zA-Z0-9]"); 
+        StringBuilder result = new StringBuilder();
+        HashMap<Character, String> map = new HashMap<Character, String>();
+        ]]>
+      </programlisting>
+    <para>Leetcode ra átalakító függvény először létrehozzuk a mintát ami egy  pattern tipusú osztály amibe deklaráljuk, hogy a kis nagybetűk és a számok is benne lesznek a-Z ls 0-9 ig. A stringbuilder az nagyon hasonlít a srtingbuferre a külömbség csak annyi, hogy ezt 1 szál használja csak ebbe fogjuk tárolni a végeredményt. Végül létrehozzuk a karaktertérképet amit lentebb fejtünk ki ez megadja, hogy mit mire fog cserélni a program.</para>
+    <programlisting language="JAVA">
+      <![CDATA[
+        map.put('A', "@");
+        map.put('B', "Ăź");
+        map.put('C', "Â©");
+        map.put('D', "Ä‘");
+        map.put('E', "â‚¬");
+        map.put('F', "Ć’");
+        map.put('G', "6");
+        map.put('H', "#");
+        map.put('I', "!");
+        map.put('J', "Âż");
+        map.put('K', "X");
+        map.put('L', "ÂŁ");
+        map.put('M', "M");
+        map.put('N', "r");
+        map.put('O', "0");
+        map.put('P', "p");
+        map.put('Q', "0");
+        map.put('R', "Â®");
+        map.put('S', "$");
+        map.put('T', "7");
+        map.put('U', "Âµ");
+        map.put('V', "v");
+        map.put('W', "w");
+        map.put('X', "%");
+        map.put('Y', "ÂĄ");
+        map.put('Z', "z");
+        map.put('0', "O");
+        map.put('1', "I");
+        map.put('2',"2");
+        map.put('3',"2");
+        map.put('4',"2");
+        map.put('5',"2");
+        map.put('6',"2");
+        map.put('7',"2");
+        map.put('8',"2");
+        map.put('9',"2");
+        
+        for (int i = 0; i < str.length(); i++) {
+            char key = Character.toUpperCase(str.charAt(i));
+            Matcher matcher = pattern.matcher(Character.toString(key));
+            if (matcher.find()) {
+                result.append(key);
+                result.append(' ');
+            } else {
+                result.append(map.get(key));
+                result.append(' ');
+            }
+        }
+        return result.toString(); 
+                ]]>
+      </programlisting>
+    <para>Fentebb láthatjuk a helyettesítő karaktereinket. Nézzük most a forciklust hiszen ez az osztályunk lelke. 0 tól a bekért string hosszáig megyünk és minden lépésnél növeljük az i-t 1-el. A szövegünkön karakterenként végigmegyünk és egy nagy csalást követünk el, hiszen mindet NAGYBETŰRE állítuk. Ezután létrehozunk egy összehasonlítót ami kikeresi a bemenet párját. Most, hogy ne kapjunk minden ismeretlen karakternél null-t ezért megvizsgáljuk. Ha ismeretlen karakter ami nincs rajta a patternen akkor visszadobjuk ha pedig rajta van a mintánkon akkor a map.get visszaadja a csere értékét. És a végén visszaadjuk az eredményt stringé konvertálva.</para>
+    <programlisting language="JAVA">
+      <![CDATA[
+    }
+    
+    public static void main(String[] args) throws IOException {
+        L33tConvertor obj = new L33tConvertor();
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String leetWord;
+        int cont;
+        do {
+
+                    System.out.println("\nEnter the English Words :-");
+                    leetWord = br.readLine();
+                    String leet = obj.toLeetCode(leetWord);
+                    System.out.println("The 1337 Code is :- " + leet);
+
+            System.out.println("\n\nDo you want to continue ? [1=Yes and 0=No]");
+            cont = Integer.parseInt(br.readLine());
+        } while (cont != 0);
+    }
+}]]></programlisting>
+    <para>Végül nézzük a main függvényt. Példányosítjuk a Converter osztályunkat majd létrehozunk egy bufferreadert -karaktereket olvas be a standard bemenetről- egy Stringet majd végül a kilépéshez szolgáló int válltozót. A bekért szavunkat átadjuk a leetWorld stringnek. Létrehozunk egy új Stringet amit egyenlővé teszünk az objektumunkra meghívott függvény végeredményével aminek paraméterül megadtuk a bekért szöveget. Az eredményt kiirjuk a standard kimenetre. Végül megkérdezzük a usert, hogy szeretne-e még egy szöveget l33tesíteni.</para>
+
+    <para>
+        <mediaobject>
+        <imageobject>
+            <imagedata fileref="leet.png" scale="40" align="left"></imagedata>
+        </imageobject>
+    </mediaobject>
+</para>
+  </section>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+</chapter>                

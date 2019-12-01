@@ -1,0 +1,400 @@
+<chapter xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xi="http://www.w3.org/2001/XInclude" version="5.0" xml:lang="hu">
+    <info>
+        <title>Helló, Calvin!</title>
+        <keywordset>
+            <keyword/>
+        </keywordset>
+    </info>
+
+    <section>
+        <title>MNIST</title>
+        <para>Az volt a feladat, hogy a program ismerjen fel egy saját kézzel rajzolt számot. Az mnist adatbázist fogjuk használni ami számjegyeket tartalmaz ezzel fogjuk betanítani a gépet.</para>
+        <programlisting ><![CDATA[ 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
+import argparse
+
+# Import data
+from tensorflow.examples.tutorials.mnist import input_data
+
+import tensorflow as tf
+
+import matplotlib.pyplot
+
+
+FLAGS = None
+
+
+def readimg():
+    file = tf.read_file("sajat8a.png")
+    img = tf.image.decode_png(file,1)
+    return img
+
+def main(_):
+  mnist = input_data.read_data_sets(FLAGS.data_dir, one_hot=True)
+
+  # Create the model
+  x = tf.placeholder(tf.float32, [None, 784])
+  W = tf.Variable(tf.zeros([784, 10]))
+  b = tf.Variable(tf.zeros([10]))
+  y = tf.matmul(x, W) + b
+
+  y_ = tf.placeholder(tf.float32, [None, 10])
+
+  cross_entropy= tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits = y, labels=y_))
+  train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
+
+  sess = tf.InteractiveSession()
+  # Train
+  tf.initialize_all_variables().run()
+  print("-- A halozat tanitasa")  
+  for i in range(1000):
+    batch_xs, batch_ys = mnist.train.next_batch(100)
+    sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys})
+    if i % 100 == 0:
+      print(i/10, "%")
+  print("----------------------------------------------------------")
+  ]]>
+            
+        </programlisting>
+        <para>A legelején definiált függvényel fogjuk a saját kézzel rajzolt 8-as unkat beolvasni. Itt volt egy nagy hiba ami lentebb az image.reshape() függvénynél hibát írt ki és nem futott le. Ezt úgy lehetett kiküszöbölni, hogy a tf.image.decode_png()-nek megadtuk a color-chanel-ek számát. Ez 1 lesz hiszen a program grayscale-es képpel működik. Utána létrehozunk egy modelt. Itt is eszközölmi kellett egy módisítást. Mégpedig ezt:<command>cross_entropy= tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits = y, labels=y_))</command> Itt nem kellett sokat keresgélni a hiba forrását hiszen megmondta az interpreter, hogy mire kell átírni az eredeti kódot.</para>
+        <programlisting ><![CDATA[ 
+  # Test trained model
+  print("-- A halozat tesztelese")  
+  correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
+  accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))  
+  print("-- Pontossag: ", sess.run(accuracy, feed_dict={x: mnist.test.images,
+                                      y_: mnist.test.labels}))
+  print("----------------------------------------------------------")
+  
+  print("-- A MNIST 42. tesztkepenek felismerese, mutatom a szamot, a tovabblepeshez csukd be az ablakat")
+  
+  img = mnist.test.images[42]
+  image = img
+
+  matplotlib.pyplot.imshow(image.reshape(28, 28), cmap=matplotlib.pyplot.cm.binary)
+  matplotlib.pyplot.savefig("4.png")  
+  matplotlib.pyplot.show()
+
+  classification = sess.run(tf.argmax(y, 1), feed_dict={x: [image]})
+
+  print("-- Ezt a halozat ennek ismeri fel: ", classification[0])
+  print("----------------------------------------------------------")
+  ]]>
+            
+        </programlisting>
+        <para>Betanítjuk a hálózatot az mnsit saját példasorozatával, majd leteszteljük. A tesztelés Felismertetjük vele a 42. tesztképet.</para>
+        <programlisting ><![CDATA[ 
+  
+  print("-- A sajat kezi 8-asom felismerese, mutatom a szamot, a tovabblepeshez csukd be az ablakat")
+
+  img = readimg()
+  image = img.eval()
+  image = image.reshape(28*28)
+
+  matplotlib.pyplot.imshow(image.reshape(28, 28), cmap=matplotlib.pyplot.cm.binary)
+  matplotlib.pyplot.savefig("8.png")  
+  matplotlib.pyplot.show()
+
+  classification = sess.run(tf.argmax(y, 1), feed_dict={x: [image]})
+
+  print("-- Ezt a halozat ennek ismeri fel: ", classification[0])
+  print("----------------------------------------------------------")
+  ]]>
+            
+</programlisting>
+<para>Itt fogjuk a saját kézzel rajzolt képünket felismertetni. Amit a program fel is ismer.</para>
+<programlisting ><![CDATA[ 
+
+if __name__ == '__main__':
+  parser = argparse.ArgumentParser()
+  parser.add_argument('--data_dir', type=str, default='/tmp/tensorflow/mnist/input_data',
+                      help='Directory for storing input data')
+  FLAGS = parser.parse_args()
+  tf.app.run()
+  ]]>
+            
+        </programlisting>
+
+        <para>
+            <mediaobject>
+              <imageobject>
+                <imagedata fileref="mnist.png" scale="25" align="center"></imagedata>
+              </imageobject>
+            </mediaobject>
+          </para>
+    </section> 
+
+    <section>
+        <title>Deep MIST</title>
+        <para></para>
+<para>A tensorflow alap méyltanulásos példáját kellett egy összefűzni a fenti 8-a felismerő résszel. Ebben a páldában szintén az MNISt számokat tartalmazó adatbázisával fogjuk betanítani a számítógépet</para>
+<programlisting><![CDATA[ 
+    def readimg():
+        file = tf.io.read_file("sajat8a.png")
+        img = tf.image.decode_png(file,1)
+        return img]]></programlisting>
+        <para>A programhoz először is hozzáfűzzük az ekőző feladatban használt képbeolvasós függvényt. Ugyan úgy decodeoljuk a grayscale-elt képet.</para>
+        <programlisting><![CDATA[ 
+            ...
+            ...
+            ...
+
+    with tf.Session() as sess:
+        sess.run(tf.global_variables_initializer())
+        for i in range(20000):
+          batch = mnist.train.next_batch(50)
+          if i % 100 == 0:
+              train_accuracy = accuracy.eval(feed_dict={
+                  x: batch[0], y_: batch[1], keep_prob: 1.0})
+              print('step %d, training accuracy %g' % (i, train_accuracy))
+          train_step.run(feed_dict={x: batch[0], y_: batch[1], keep_prob: 0.5})
+
+        print('test accuracy %g' % accuracy.eval(feed_dict={
+            x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0}))
+        saver = tf.train.Saver()
+
+        img = readimg()
+        image = img.eval(session=sess)
+        image = image.reshape(28*28)
+        matplotlib.pyplot.imshow(image.reshape(28, 28), cmap=matplotlib.pyplot.cm.binary)
+        matplotlib.pyplot.savefig("8.png")
+        matplotlib.pyplot.show()
+
+        classification = sess.run(tf.argmax(y_conv, 1), feed_dict={x: [image], keep_prob: 1.0})
+        saver.save(sess, "model.ckpt")
+        print("-- A sajat kezi 8-asom felismerese, mutatom a szamot, a tovabblepeshez csukd be az ablakat")
+        #saver.restore(sess, "model.ckpt")
+        print("-- Ezt a halozat ennek ismeri fel: ", classification[0])
+        print("----------------------------------------------------------")]]></programlisting>
+        <para>Majd a Session alá ügyelve a behúzásokra behúzzuk az előző kódból a képfelismerős részt. Ugyan úgy kiválasztjuk a leginkább a bemeneti képhez hasonló képet a classification-el. Láthatjuk, hogy a tanítási a forckilusban történik ami 20000-szer fut le. Az előző példa azonnali futása helyett itt a tanulás jóval több időt vesz igénybe ez a számítások bonyolultágából adódik. Nálam szerencsére nem volt vészes 12-15 perc alatt simán lement.</para>
+        <para>
+            <mediaobject>
+              <imageobject>
+                <imagedata fileref="melymist.png" scale="25" align="center"></imagedata>
+              </imageobject>
+            </mediaobject>
+          </para>
+    </section> 
+
+    <section>
+        <title>Android telefonra a TF objektum detektálója</title>
+        <para></para>
+        <para>A tensorflow androidos objektumdetektálóját kellett feltelepíteni és kipróbálni. Ezt úgy oldottam meg, hogy letöltöttem az apk-t innen https://m.apkpure.com/object-detector-and-classifier-tensorflow/hash.tf.objectdetection/download?from=details. Telefonon telepítésnél be kellett állítani megbízható forrásként és már indul is az aplikáció. Pár kép a futásról.</para>
+        <para>
+          <mediaobject>
+            <imageobject>
+              <imagedata fileref="tensor1.jpg" scale="60" align="center"></imagedata>
+            </imageobject>
+          </mediaobject>
+        </para>
+
+        <para>
+          <mediaobject>
+            <imageobject>
+              <imagedata fileref="tensor2.jpg" scale="60" align="center"></imagedata>
+            </imageobject>
+          </mediaobject>
+        </para>
+    </section> 
+    
+    <section>
+        <title>Minecraft malmo</title>
+        <para></para>
+        <para>A fealdatot Tutorálta: Csontos Róbert</para>
+        <para>A feadat az volt, hogy megnézzük a Minecraft Malmoben egy ágenskezelős példát. A program figyeli a maga körül lévő blokkokat és képes köztük navigálni is ha elakad akkor random tevékenyéggel megpróbál kiszabadulni. A példát windwosban futtatam le.</para>
+        <programlisting>
+          <![CDATA[ 
+from __future__ import print_function
+# ------------------------------------------------------------------------------------------------
+# Copyright (c) 2016 Microsoft Corporation
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+# associated documentation files (the "Software"), to deal in the Software without restriction,
+# including without limitation the rights to use, copy, modify, merge, publish, distribute,
+# sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all copies or
+# substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+# NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+# DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+# ------------------------------------------------------------------------------------------------
+
+# Sample to demonstrate use of the DefaultWorldGenerator, ContinuousMovementCommands, timestamps and ObservationFromFullStats.
+# Runs an agent in a standard Minecraft world, randomly seeded, uses timestamps and observations
+# to calculate speed of movement, and chooses tiny "programmes" to execute if the speed drops to below a certain threshold.
+# Mission continues until the agent dies.
+
+from builtins import range
+import MalmoPython
+import os
+import random
+import sys
+import time
+import datetime
+import json
+import random
+import malmoutils
+
+malmoutils.fix_print()
+
+agent_host = MalmoPython.AgentHost()
+malmoutils.parse_command_line(agent_host)
+recordingsDirectory = malmoutils.get_recordings_directory(agent_host)
+video_requirements = '<VideoProducer><Width>860</Width><Height>480</Height></VideoProducer>' if agent_host.receivedArgument("record_video") else ''
+
+def GetMissionXML():
+    ''' Build an XML mission string that uses the DefaultWorldGenerator.'''
+    
+    return '''<?xml version="1.0" encoding="UTF-8" ?>
+    <Mission xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <About>
+            <Summary>Normal life</Summary>
+        </About>
+
+        <ServerSection>
+            <ServerHandlers>
+                <DefaultWorldGenerator />
+            </ServerHandlers>
+        </ServerSection>
+
+        <AgentSection mode="Survival">
+            <Name>Rover</Name>
+            <AgentStart>
+                <Inventory>
+                    <InventoryBlock slot="0" type="glowstone" quantity="63"/>
+                </Inventory>
+            </AgentStart>
+            <AgentHandlers>
+                <ContinuousMovementCommands/>
+                <ObservationFromFullStats/>''' + video_requirements + '''
+            </AgentHandlers>
+        </AgentSection>
+]]>
+    </programlisting>
+    <para>A világgeneráláshoz használt adatok megadása. Mi legyen az inventoryban, milyen volágfajtát szeretnénk legenerálni, milyen módban.</para>
+      <programlisting>
+  <![CDATA[
+    </Mission>'''
+  
+# Variety of strategies for dealing with loss of motion:
+commandSequences=[
+    "jump 1; move 1; wait 1; jump 0; move 1; wait 2",   # attempt to jump over obstacle
+    "turn 0.5; wait 1; turn 0; move 1; wait 2",         # turn right a little
+    "turn -0.5; wait 1; turn 0; move 1; wait 2",        # turn left a little
+    "move 0; attack 1; wait 5; pitch 0.5; wait 1; pitch 0; attack 1; wait 5; pitch -0.5; wait 1; pitch 0; attack 0; move 1; wait 2", # attempt to destroy some obstacles
+    "move 0; pitch 1; wait 2; pitch 0; use 1; jump 1; wait 6; use 0; jump 0; pitch -1; wait 1; pitch 0; wait 2; move 1; wait 2" # attempt to build tower under our feet
+]
+
+my_mission = MalmoPython.MissionSpec(GetMissionXML(), True)
+my_mission_record = MalmoPython.MissionRecordSpec()
+if recordingsDirectory:
+    my_mission_record.setDestination(recordingsDirectory + "//" + "Mission_1.tgz")
+    my_mission_record.recordRewards()
+    my_mission_record.recordObservations()
+    my_mission_record.recordCommands()
+    if agent_host.receivedArgument("record_video"):
+        my_mission_record.recordMP4(24,2000000)
+
+if agent_host.receivedArgument("test"):
+    my_mission.timeLimitInSeconds(20) # else mission runs forever
+
+# Attempt to start the mission:
+max_retries = 3
+for retry in range(max_retries):
+    try:
+        agent_host.startMission( my_mission, my_mission_record )
+        break
+    except RuntimeError as e:
+        if retry == max_retries - 1:
+            print("Error starting mission",e)
+            print("Is the game running?")
+            exit(1)
+        else:
+            time.sleep(2)
+
+# Wait for the mission to start:
+world_state = agent_host.getWorldState()
+while not world_state.has_mission_begun:
+    time.sleep(0.1)
+    world_state = agent_host.getWorldState()
+    ]]>
+      </programlisting>
+      <para>Maga a küldetés betöltéséért és elindításáért felel ez a rész. Maximum 3x próbálkozunk a küldetés elindításával utána hibát dobunk és kilépünk.</para>
+      <programlisting>
+        <![CDATA[ 
+
+currentSequence="move 1; wait 4"    # start off by moving
+currentSpeed = 0.0
+distTravelledAtLastCheck = 0.0
+timeStampAtLastCheck = datetime.datetime.now()
+cyclesPerCheck = 10 # controls how quickly the agent responds to getting stuck, and the amount of time it waits for on a "wait" command.
+currentCycle = 0
+waitCycles = 0
+
+# Main loop:
+while world_state.is_mission_running:
+    world_state = agent_host.getWorldState()
+    if world_state.number_of_observations_since_last_state > 0:
+        obvsText = world_state.observations[-1].text
+        currentCycle += 1
+        if currentCycle == cyclesPerCheck:  # Time to check our speed and decrement our wait counter (if set):
+            currentCycle = 0
+            if waitCycles > 0:
+                waitCycles -= 1
+            # Now use the latest observation to calculate our approximate speed:
+            data = json.loads(obvsText) # observation comes in as a JSON string...
+            dist = data.get(u'DistanceTravelled', 0)    #... containing a "DistanceTravelled" field (amongst other things).
+            timestamp = world_state.observations[-1].timestamp  # timestamp arrives as a python DateTime object
+
+            delta_dist = dist - distTravelledAtLastCheck
+            delta_time = timestamp - timeStampAtLastCheck
+            currentSpeed = 1000000.0 * delta_dist / float(delta_time.microseconds)  # "centimetres" per second?
+            
+            distTravelledAtLastCheck = dist
+            timeStampAtLastCheck = timestamp
+]]>
+      </programlisting>
+  <para>A program fő ciklusa. Maga a küldetés addig fog menni amég a karakter a játékban meg nem halt. Az elején beállítunk néhány alapértelmezett értéket pl. a kezdő mozgást alapból mozgással fog indítani.Mérjük azt is, hogy mennyit megy összesen a karakter. Ebből ki tudjuk majd számolni, hogy az utolsó csekkolásunk óta tennyi távolságot tett. A környezet megvizsgálása után meghatározzuk a karaketr sebességét és a sebesség alapján beállítja a várakozást is. A helyzetfelismerésünk 10 egységenként fut le 1x és ha a várakozásunk elérte a 0 -t akkor kapunk új random akciót.</para>
+  <programlisting>
+    <![CDATA[
+    if waitCycles == 0:
+        # Time to execute the next command, if we have one:
+        if currentSequence != "":
+            commands = currentSequence.split(";", 1)
+            command = commands[0].strip()
+            if len(commands) > 1:
+                currentSequence = commands[1]
+            else:
+                currentSequence = ""
+            print(command)
+            verb,sep,param = command.partition(" ")
+            if verb == "wait":  # "wait" isn't a Malmo command - it's just used here to pause execution of our "programme".
+                waitCycles = int(param.strip())
+            else:
+                agent_host.sendCommand(command)    # Send the command to Minecraft.
+                
+    if currentSequence == " " and currentSpeed < 50 and waitCycles == 0: # Are we stuck?
+        currentSequence = random.choice(commandSequences)   
+        print("Stuck! Chosen programme: " + currentSequence)
+
+        ]]>
+      </programlisting>
+      <para>A parancsok kiadása közt várakozási idő van. Ha éppen várunk akkor nem küldünk utasítást. Ha a karakterünk beakadt akkor küldünk egy random tevékenységet ami lehet ugrás, ütés stb. És a koznolra kiírjuk, hogy mit csináltunk akikor beragadtunk. Ez egy ista ami fenetbb van definiálva abba van megadva az ugrás elfordulás ütés vagy építés.</para>
+      
+      <para>
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="MALMO.png" scale="115" align="center"></imagedata>
+          </imageobject>
+        </mediaobject>
+      </para>
+    </section>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+</chapter>                

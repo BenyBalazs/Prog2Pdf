@@ -1,0 +1,244 @@
+<chapter xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xi="http://www.w3.org/2001/XInclude" version="5.0" xml:lang="hu">
+    <info>
+        <title>Helló,!</title>
+        <keywordset>
+            <keyword/>
+        </keywordset>
+    </info>
+
+    <section>
+        <title>FUTURE tevékenység editor </title>
+      <para>A feladatot tutorálta:Szegedi Csaba</para>
+        <para>
+          A program felélesztéséhez szükségünk lesz egy 8-as JDK-ra hiszen a programban használt java fx csak itt létezik a többi JDK-ban nem. Erre van egy jó program az sdkmen, ennek segítségével át is tudjuk válltani az sdk-t és már mehet is a program. Ha sikerült lefuttatni akkor észrevehetjük, hogy a porgramban sok hiba van a sok közül az egyik az, hogy nem képes több altevékenységet létrehozni ezt kiküszöbölendő. Az altevékenységet létrehozó kódot ciklusba kell helyeznünk.
+        </para>
+      <para>Eredeti kód:</para>
+      <programlisting language="java">
+        <![CDATA[
+        public class KapuSzkenner {
+    
+          public static void main(String[] args) {
+              
+              for(int i=0; i<1024; ++i)
+                  
+                  try {
+                      
+                      java.net.Socket socket = new java.net.Socket(args[0], i);
+                      
+                      System.out.println(i + " figyeli");
+                      
+                      socket.close();
+                      
+                  } catch (Exception e) {
+                      
+                      System.out.println(e);
+                      
+                  }
+          }
+          
+      }
+            ]]>
+      </programlisting>
+      <para>A módosított kód.</para>
+      <programlisting language="java">
+        <![CDATA[
+        public TextFieldTreeCell(javafx.scene.control.TextArea propsEdit) {
+            this.propsEdit = propsEdit;
+            javafx.scene.control.MenuItem subaMenuItem = new javafx.scene.control.MenuItem("Új Altevékenység");                    
+            addMenu.getItems().add(subaMenuItem);
+            subaMenuItem.setOnAction((javafx.event.ActionEvent evt) -> {
+                java.io.File file = getTreeItem().getValue();
+
+                int i = 1;
+                while (true) {
+                    java.io.File f = new java.io.File(file.getPath() + System.getProperty("file.separator") + "Új Altevékenység" + i); 
+                                                                                                           
+                    if (f.mkdir()) {
+                        javafx.scene.control.TreeItem<java.io.File> newAct = new FileTreeItem(f, new javafx.scene.image.ImageView(actIcon));
+                        getTreeItem().getChildren().add(newAct);
+                        break;
+                    } else {
+                        i++;
+                        System.err.println("Cannot create " + f.getPath());
+
+                    }
+                }
+            });
+            ]]>
+      </programlisting>
+      <para>Most ha sikeresen létrehoztuk az altevékenységet akkor a break utasítás-al kilépünk a végtelen ciklusunkból, amennyiben nem sikerült a létrehozás, akkor error üzenetet küldünk és újra elkezdődik az altevékenyég létrehozása akkor hibaüzenetet küldünk és növeljük az i-t.</para>
+      <para>
+          <mediaobject>
+          <imageobject>
+              <imagedata fileref="javitas.png" scale="25" align="left"></imagedata>
+          </imageobject>
+      </mediaobject>
+  </para>
+    </section> 
+  
+      <section>
+        <title>OOCWC Boost ASIO hálózatkezelése </title>
+        <para>
+          Itt ez a fájl beolvasással foglalkozik. Az sscanf formázott adatokat olvas be a bemenetről. A scan f 4 külömböző adatot vár. A while ciklusra azért van szükségünk mert addig szeretnénk beolvasni amég van megfelelő adatunk ezt a sscanf visszatérési értékével ellenőrizzük ami a sikeresen beolvasott adatok száma lesz. Az n az a végén megkapja int ben, hogy összesen mennyit olvastunk be szóval ő nem számít bele a beolvasott adatok mennyiségébe. Ennek segítségével azt is meg tudjuk nézni, hogy összesen mennyit olvasunk be hiszen ezt a számot mindíg hozzáadjuk az nn-hez. Minden futásnál a data+nn-edik helyen lévő adatot fogjuk beolvasni így nem fogjuk többször ugyan azt a sort olvasni.
+        </para>
+   <programlisting language="java"><![CDATA[
+            while ( std::sscanf ( data+nn, "<OK %d %u %u %u>%n", &idd, &f, &t, &s, &n ) == 4 )
+                {
+                  nn += n;
+                  gangsters.push_back ( Gangster {idd, f, t, s} );
+                }
+            
+            ]]>
+    </programlisting>
+        
+    </section>  
+
+    <section>
+        <title>SamuCam</title>
+        <para>   
+        </para>
+      <para>A program parancssori argumentumként kapott IP-címről nyit meg kamerát. A program elindításához szüskég lesz a lbpcascade_frontalface.xml-re. Ezt a program könyvtárába kell helyezni. Láthatjuk a programmból, hogy a gyökérben fogja keresni a fájlt std::string faceXML = "lbpcascade_frontalface.xml";.  </para>
+   <programlisting language="java"><![CDATA[
+     #include "SamuCam.h"
+
+SamuCam::SamuCam ( std::string videoStream, int width = 176, int height = 144 )
+
+  : videoStream ( videoStream ), width ( width ), height ( height )
+
+{
+  openVideoStream();
+}
+
+SamuCam::~SamuCam ()
+
+{}
+
+void SamuCam::openVideoStream()
+
+{
+
+  videoCapture.open ( videoStream );
+  videoCapture.set ( CV_CAP_PROP_FRAME_WIDTH, width );
+  videoCapture.set ( CV_CAP_PROP_FRAME_HEIGHT, height );
+  videoCapture.set ( CV_CAP_PROP_FPS, 10 );
+
+}
+            ]]>
+    </programlisting>
+      <para>Megnyitjuk a webkameránkat  az OpenVC segítségével és beállítjuk. A videoCapture.open ( videoStream ) függvény megnyitja a kamerát. Itt én módosítást végeztem mivel nem IP-ről szeretném megnyitni azt a bizonyos kamerát hanem a saját gépem webkameráját szeretném megnyitni. Ezt úgy érhetjük el, hogy az eredeti kódban található videoCapture.open ( videoStream ); sort a következőre módisítjuk videoCapture.open (0); Utána a .set() fügvényekkel beállítjuk a szélességet és a magasságot valamint, hogy mennyi FPS-el fusson.</para>
+<programlisting language="java"><![CDATA[
+void SamuCam::run()
+
+{
+  cv::CascadeClassifier faceClassifier;
+  std::string faceXML = "lbpcascade_frontalface.xml";
+
+  if ( !faceClassifier.load ( faceXML ) )
+
+    {
+      qDebug() << "error: cannot found" << faceXML.c_str();
+      return;
+    }
+    cv::Mat frame;
+            ]]>
+    </programlisting>
+      <para>Példányosítunk egy CascadeClassifiert ez az OpenCV-ben objektumok felismerésére alkalmas. Itt látható, hogy a program megnyitja az xml fájlt. Ezt megadjuk a classifier-nek, hogy lehetővé váljon az arcfelismerés. Utána egy rövid hibakezelés következik, ha nem sikerül a .load függvénynek betöltenie az xml-t. Valamint még példányosítjuk a mat.ot ami egy n dimenziós mátrixosztály ebbe fogjuk tárolni a kép adatait.</para>
+<programlisting language="java"><![CDATA[
+
+  while ( videoCapture.isOpened() )
+
+    {
+
+      QThread::msleep ( 50 );
+      while ( videoCapture.read ( frame ) )
+
+        {
+
+          if ( !frame.empty() )
+
+            {
+
+              cv::resize ( frame, frame, cv::Size ( 176, 144 ), 0, 0, cv::INTER_CUBIC );
+              std::vector<cv::Rect> faces;
+              cv::Mat grayFrame;
+
+              cv::cvtColor ( frame, grayFrame, cv::COLOR_BGR2GRAY );
+              cv::equalizeHist ( grayFrame, grayFrame );
+              faceClassifier.detectMultiScale ( grayFrame, faces, 1.1, 4, 0, cv::Size ( 60, 60 ) );
+
+              if ( faces.size() > 0 )
+
+                {
+                  cv::Mat onlyFace = frame ( faces[0] ).clone();
+
+                  QImage* face = new QImage ( onlyFace.data,
+                                              onlyFace.cols,
+                                              onlyFace.rows,
+                                              onlyFace.step,
+                                              QImage::Format_RGB888 );
+
+                  cv::Point x ( faces[0].x-1, faces[0].y-1 );
+                  cv::Point y ( faces[0].x + faces[0].width+2, faces[0].y + faces[0].height+2 );
+                  cv::rectangle ( frame, x, y, cv::Scalar ( 240, 230, 200 ) );
+                  emit  faceChanged ( face );
+
+                }
+                
+              QImage*  webcam = new QImage ( frame.data,
+                                             frame.cols,
+                                             frame.rows,
+                                             frame.step,
+                                             QImage::Format_RGB888 );
+
+              emit  webcamChanged ( webcam );
+
+            }
+
+          QThread::msleep ( 80 );
+
+        }
+
+      if ( ! videoCapture.isOpened() )
+
+        {
+          openVideoStream();
+        }
+    }
+}
+            ]]>
+    </programlisting>
+      <para>Végül elemezzük a program lelkét a while ciklust ami addig fog menni amíg meg van nyitva a webcam. A cv::resize()-al átméretezzük és interpoláljuk a cv::INTER_CUBIC-segítségével ami pixletérképet készít. A frame-et  rjuk felül hiszen az a függvény bemenete és kimenete is. Ezután a frame-et a cv::cvtColor segítségével szürkére állítjuk és ennek az adatait a frissen létrehozott cv::Mat grayFrame;-be töltjük. A cv::equalizeHist kieggyenlíti a hisztogrammot. .detectMultiScale()-t a fej megkereséséhez használjuk a függvény külömboző méretű téglalapokkal tér vissza. Ha találtunk fejet akkor annak az adatát eltároljuk az onlyFace-be. A képet átszinezzük pirosra majd az emit-el kiküldjük. Ezt a jelet majd a SamiBrain szépen feldolgozza. Ezután még egy képet készítünk ami megint elküld egy jelet ami jelezni fogja a SamuBrain-nek, hogy jó lenne frissíteni a webcamképet. Mindezek után rövid várakozás következik és kezdődik elölről.
+      </para>
+      <para>A pragramot el is indítottam íme a végeredmény:</para>
+      <para>
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="samucamrunning.png" scale="25" align="center"></imagedata>
+          </imageobject>
+        </mediaobject>
+      </para>
+    </section>
+    
+    <section>
+        <title>BrainB</title>
+        <para></para>
+      <para>QT-ban a slot signalt küklömböző objektumok közötti kommunikációra használhatjuk. Ezek a függvények akkor fognak meghívódni ha bekövetkezik egy bizonyos esemény amiről kód küld egy emit-et. A megfelelő emit-et fogja befogni a connet .</para>
+        
+<programlisting language="java"><![CDATA[
+
+        connect ( brainBThread, SIGNAL ( heroesChanged ( QImage, int, int ) ),
+                  this, SLOT ( updateHeroes ( QImage, int, int ) ) );
+
+        connect ( brainBThread, SIGNAL ( endAndStats ( int ) ),
+                  this, SLOT ( endAndStats ( int ) ) );
+                  ]]></programlisting>
+      <para>A fogadó helyet megjelöljük és a SIGNAL() függvényben megadjuk, hogy milyen paramétereket várunk a heroesChanged jeltől, ezt melyik objektumnak továbbítsuk és a SLOT za, hogy mit továbbítunk jelen azt, hogy fusson le az updateHeroes()-a kapott paraméterekkel. A másik connect is hasonlóan működik. Ott a befejező időt fogja megkapni int-ben. Az endAndStat leállítja a programot és kiírja, hogy az alábbi könyvtárban találod a végeredményt.</para>
+      <para>
+          <mediaobject>
+          <imageobject>
+              <imagedata fileref="brainB.png" scale="25" align="left"></imagedata>
+          </imageobject>
+      </mediaobject>
+  </para>
+    </section>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+</chapter>                

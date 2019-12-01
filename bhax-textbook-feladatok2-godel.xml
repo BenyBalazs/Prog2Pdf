@@ -1,0 +1,176 @@
+<chapter xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xi="http://www.w3.org/2001/XInclude" version="5.0" xml:lang="hu">
+    <info>
+        <title>Helló, Gödel!</title>
+        <keywordset>
+            <keyword/>
+        </keywordset>
+    </info>
+
+    <section>
+        <title>Gengszterek</title>
+        <para>
+        </para>
+      <para>Lambda kifejezéseket akkor érdemes használni ha inline függvényt szeretnénk definiálni amit aztán sehol máshol nem használunk fel csak ebben az 1 esetben. Ilyenkor nekünk még visszatérítési értéket sem kell megadni mert azt a fordító mjad elintézi. Itt rendezni fogunk a sort segítségével ami végég fog menni a gengstereken az elejétől a végéig és az aktuális x és y elemet fogja összemérni a randőrével és addig fog rajta dolgozni amég ki nem alakítja a sorrendet. Úgy fogja megcsinálni, hogy a legközelebbre eső gangster kerüljön a lista elejére és a legmesszebb lévő a végére.</para>
+      <programlisting language="C++">
+        <![CDATA[       
+       std::sort ( gangsters.begin(), gangsters.end(), [this, cop] ( Gangster x, Gangster y )
+      {
+      return dst ( cop, x.to ) < dst ( cop, y.to );
+  } );]]>
+      </programlisting>
+
+    </section> 
+  
+      <section>
+        <title>C++11 Custom Allocator </title>
+        <para> 
+        </para>
+        <para>A c++ alaból rendelkezi allocatorral ami a legtöbb esetben kielégítő. Costum allocatrot akkor érdemes használni ha nagyon optimalizáli szeretnénk a kódunkat. Tehát itt most mi fogjuk megírni azt, hogy az</para>
+        <programlisting language="C++">
+          <![CDATA[       
+          #include <stddef.h>
+            #include <cxxabi.h>
+            #include <iostream>
+            #include <vector>
+            
+            template<typename T>
+            class CustomAlloc
+            {
+              public:
+                CustomAlloc() {}
+                CustomAlloc(const CustomAlloc&) {}
+                ~CustomAlloc() {}
+                using size_type = size_t;
+                using value_type = T;
+                using pointer = T*;
+                using const_pointer = const T*;
+                using reference = T&;
+                using const_reference = const T&;
+                using difference_tyoe = ptrdiff_t;
+                pointer allocate( size_type n)
+                {
+                  int s;
+                  char* p = abi::__cxa_demangle( typeid (T).name(), 0, 0, &s);
+                  std::cout << "Allocating " << n << " objects of " << n*sizeof (T) << " bytes. " << typeid (T).name() << "=" << p << std::endl;
+                  delete p;
+                  return reinterpret_cast<T*>(new char[n*sizeof(T)]);
+                }
+                void deallocate (pointer p, size_type n)
+                {
+                  delete[] reinterpret_cast<char *>(p);
+                  std::cout << "Deallocating " << n << " objects of " << n*sizeof (T) << " bytes. " << typeid (T).name() << "=" << p << std::endl;
+                }
+            };
+            
+            int main(int argc, char* argv[]) {
+            
+              std::vector<int, CustomAlloc<int>> v;
+            
+              v.push_back(1);
+              v.push_back(2);
+              v.push_back(3);
+              v.push_back(4);
+              v.push_back(5);
+              return 0;
+            }
+            ]]>
+        </programlisting>
+        <para>Az elején a template arra szolgál, hogy átvegye a tipust pl. a vektornak <![CDATA[<int>,<string>]]>. Utána áll a struktúra neve, hogy meg tudjuk majd hívni. A memória lefoglalását az allocate végzi ami minden egyes lefutásnál az előzőnél 2* akkora helyet foglal le 4 8 16 32 és így továb. Az allocátorba nyomonkövető szövegeket is beépítettünk. A lefoglalt memória a dealloc nélkül le is marad foglalva tehát folyamatosan többet fog lefoglaln, ha viszont megírjuk a deallocatort akkor csak az aktuálisan használt memória marad lefoglalva a többi felszabadul. Végül létrehozzuk a vektorunkat aminek megadjuk a costum allocunkat és push_back() elünk bele egy keveset.</para>
+        
+        <para>
+          <mediaobject>
+            <imageobject>
+              <imagedata fileref="alloc.png" scale="50" align="center"></imagedata>
+            </imageobject>
+          </mediaobject>
+        </para>
+    </section>  
+
+    <section>
+        <title>STL map érték szerinti rendezése </title>
+        <para>
+        </para>
+      <para>Ebben a feladatba az volt a lényeg, hogy a programunk a map-ot ne a kulcsa alapján rendezze, hanem az érték mező szerint. Ehez létrehozunk egy parit vektort amibe előbb mindent átpakolunk, majd ennek az elemeit fogjuk rendezni csökkenő sorrendben lambda kifejezéssel, végül betölteni az ordered vektorba. És a végén visszatérítjük az ordered vektort.
+      </para>
+      <programlisting language="C++">
+        <![CDATA[std::vector<std::pair<std::string, int>> sort_map ( std::map <std::string, int> &rank )
+
+{
+        std::vector<std::pair<std::string, int>> ordered;
+
+        for ( auto & i : rank ) {
+
+                if ( i.second ) {
+
+                        std::pair<std::string, int> p {i.first, i.second};
+
+                        ordered.push_back ( p );
+                }
+        }
+
+        std::sort (
+
+                std::begin ( ordered ), std::end ( ordered ),
+
+        [ = ] ( auto && p1, auto && p2 ) {
+
+                return p1.second > p2.second;
+        }
+        );
+        return ordered;
+}
+        ]]>
+      </programlisting>
+      <para>
+          <mediaobject>
+          <imageobject>
+              <imagedata fileref="ertekszerintirendezes.png" scale="25" align="left"></imagedata>
+          </imageobject>
+      </mediaobject>
+  </para>
+
+    </section>
+    
+    <section>
+        <title>Alternatív Tabella rendezése </title>
+        <para>
+          Azért van szükség java.lang Interface Comparable<![CDATA[<T>]]> mert a sort függvény ezt használja amikor rendez, ezeket az értékeket rendezésnél lehet kulcsként használni anélkül, hogy egy külön összehasonlítót adnánk meg. Nézzük meg a kódban, hogy erre miért is van szükség.
+        </para>
+      <programlisting language="JAVA">
+        <![CDATA[
+java.util.List<Csapat> rendezettCsapatok = java.util.Arrays.asList(csapatok);
+java.util.Collections.sort(rendezettCsapatok);
+java.util.Collections.reverse(rendezettCsapatok);
+java.util.Iterator iterv = rendezettCsapatok.iterator();
+...
+...
+class Csapat implements Comparable<Csapat> {
+
+protected String nev;
+protected double ertek;
+
+public Csapat(String nev, double ertek) {
+ this.nev = nev;
+ this.ertek = ertek;
+}
+
+public int compareTo(Csapat csapat) {
+ if (this.ertek < csapat.ertek) {
+   return -1;
+ } else if (this.ertek > csapat.ertek) {
+   return 1;
+ } else {
+   return 0;
+ }	]]>
+      </programlisting>
+      <para>Tehát azért volt szükség implementálnia az osztálynak a comparable interfészt, hogy a java amikor rendezzük akkor ne az osztály hash code-ja alapján rendezzen hanem az általunk megírt CompareTo függvényel. És ha ezekből az objektumokból készítenénk egy listát vagy tömböt akkor a sort függvény a compare to alapján sorba is rendezi nekünk. Láthatjuk fent, hogy a rendezettCsapatok Listára meghívjuk a sortot.</para>
+      <para>
+          <mediaobject>
+          <imageobject>
+              <imagedata fileref="alternativtabella.png" scale="40" align="left"></imagedata>
+          </imageobject>
+      </mediaobject>
+  </para>
+    </section>
+  
+</chapter>                

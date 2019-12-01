@@ -1,0 +1,143 @@
+<chapter xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xi="http://www.w3.org/2001/XInclude" version="5.0" xml:lang="hu">
+    <info>
+        <title>Helló, Mandelbrot!</title>
+        <keywordset>
+            <keyword/>
+        </keywordset>
+    </info>
+
+    <section>
+        <title>Reverse engineering UML osztálydiagram </title>
+        <para></para>
+      <para>
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="binfareverse.png" scale="75" align="center"></imagedata>
+          </imageobject>
+        </mediaobject>
+      </para>
+      <para>Az osztályok ban lévő tagok láthatóségét a nevük mellett lévő <command>-</command> <command>#</command> <command>+</command> jel mutatja meg nekünk melyek sorba a következőket jelentik. Private, protecete valamint public.
+    </para>
+      <para>A diagrammunkból látszik, hogy a 2 global függvényünk nem függ semmitől, hiszen nem indulnak belőle nyilak és felé sem mennek.</para>
+      <para>Először vegyük szemügyre a csomópont osztályt melynek a bal oldalán láthatunk egy nyilat ami a csomópontból indul és ugyan oda érkezik vissza. Ez azt jeleni, hogy összeköttetés van sima association ami mivel mindkét végén pont van mind a két oldalról navigable (?bejárható?).</para>
+      <para>
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="umlnyilak.png" scale="50" align="center"></imagedata>
+          </imageobject>
+        </mediaobject>
+      </para>
+      <para>Kompozíciós kapcsolat van a csomópont és az LZW között ez azt jelenti, hogy a csomópont osztály nem létezhet az LZW nélkül. Láthatunk felül egy olyan nyilat is aminek az a neve, hogy Aggregation ebben az esetben viszont létezhetne függetlenül a tárolótól (LZW osztály).</para>
+      <para>Most az LZW felöli oldalt nézzük meg. Látható egy sima eggyirányú -mert csak az eggyik végén van pont- kapcsolat a #gyükér. Egy függőséget jelző nyil ami azt jelent, hogy a két osztály között szemantikai kapcsolat van ez azt jelenti ebben az esetben, hogy ha a Csomópontban változás történik az kihatással lesz az LZW-re is. Valamint láthatunk még egy eggyirányú kapcsolatot amit a fa tagnak a kapcsolata.</para>
+    </section> 
+  
+      <section>
+        <title>Forward engineering UML osztálydiagram </title>
+        <para></para>
+        <para>Forward engineering-et érdemes alaklmazni amikor a kódot tervezzük. Gondolattérkép szerűen felépítjük a kódot és aztán már csak egy gombnyomásra Visual Paradigm segítségével készíthetünk az osztálydiagrammból ami a képen látható akármilyen nyelven egy kódot.</para>
+        <para>        
+          <mediaobject>
+          <imageobject>
+            <imagedata fileref="forward.png" scale="50" align="center"></imagedata>
+          </imageobject>
+        </mediaobject></para>
+
+    </section>  
+
+        <section>
+        <title>Egy esettan</title>
+        <para></para>
+          <para>Feladatot tutorálta: Olah Sándor Lajos</para>
+          <para>A könyv végigvezet minket egy program megírásán. Könyvtárak formájában és az lesz a lényeg, hogy később ne keljen átírni a forráskódot nagyon. A megírt program egy informatika cég termékeit fogja tárolni alkatrészenként (megjelenítők, merevlemezek) és összetett termékekként (számítógép). Az alap osztály amit minden örökölni fog az a Product osztály ez tartalmazza a nevet a termék korát és ki is tudja számolni az árát. Az á függvényt az alosztályokban felüldefiniáljuk a megfelelő termék tulajdonságaira alapozva pl. a merevlemezt leárazzuk 30 majd 90 nap után. A programnak tudnia kell olvasni fájlból és azt eltárolnia adatbázisban. Erre írtunk egy void függvényt a Program osztályba. Soronként fogjuk beolvasni az adatokat és az 1. karakter lesz a termékazonosító. Az áron kívül mindent tud tárolni -az árat a termék korából számoljuk ki- ezért az árat majd a gyerek osztályokban felüldefiniálhatjuk. A nehezebb feladat az összetett termékek tárolása ezt az osztályt is a Product osztályból származtatjuk és azokat az alkatrészeket amikből felépülnek egy külön vektorban tároljuk el és ehez a vektorhoz írnuk függvényeket amik hozzáadnak alkatrészeket. Ha ezzel elkészültünk akkor már csak az adatok kiírásáról kell gondoskodnunk. Ezt a Product osztályban található virtual void Printparams függvény csinálja. Ezt terméknek megfelelően felül lehet definiálni. A termékeket nyilván kell tartanunk ezért be kell vezetnünk egy új osztályt ami ezt végzi. A példányosításhos létrehozunk egy ProductFactory osztályt és a termékek kezelését az ebben található ReadAndCreateProduct függvényre bízzuk. </para>
+
+          <para>
+            A program futás közben.
+          </para>
+            <para>
+              <link xlink:href="https://github.com/BenyBalazs/Prog2Pdf/blob/master/robocar.mp">A program forrása.</link></para>
+          <para>
+            <mediaobject>
+              <imageobject>
+                <imagedata fileref="esettan.png" align="center"></imagedata>
+              </imageobject>
+            </mediaobject>
+          </para>
+
+    </section>  
+
+    <section>
+        <title>BPMN</title>
+        <para></para>
+      <para>
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="BPMLdiagramm.png" align="center"></imagedata>
+          </imageobject>
+        </mediaobject>
+      </para>
+      <para>Business Process Model and Notation lényege, hogy érthető folyamatábrát készítsen. Lehetőségünk van a folyamatok elágazásait kitárgyalni benne. Mi most egy éttermi rendelésen a folyamatábráját készítettük el. Leolvashatjuk róla, hogy milyen lépések vannak amíg eljutunk a kezdőállapotból a végállapotig. A zöld kér a kezdőállapot, a lekerekített szélű téglalap a tevékenység a rombusz az elágaztatás a dupla körvonalas kör az a várakoztatás a rózsaszín kör pedig a végállapot.</para>
+
+    </section>
+    
+    <section>
+        <title>TeX UML</title>
+        <para></para>
+      <para>A feladat megoldásához MetaUML csomagot választottuk amit innen lehet letölteni https://github.com/ogheorghies/MetaUML. A leírásban található pdf alapján könnyen lehet vele diagrammokat készíteni.</para>
+      <para>
+        <programlisting language="JAVA">
+          <![CDATA[
+#include <boost/filesystem.hpp>  
+#include <iostream> 
+#include <vector>
+#include <cstdlib>  
+#include <experimental/filesystem>           
+using namespace std;
+
+int main(int ac, char** av)
+{
+    string extension;
+    vector<string> files;
+    int count = 0;
+    boost::filesystem::recursive_directory_iterator iterator (string("/mnt/d/src"));
+    while(iterator != boost::filesystem::recursive_directory_iterator())
+		{
+			string extension = boost::filesystem::extension(iterator->path().filename());
+
+				if (boost::filesystem::is_regular_file(iterator->path()) && extension == ".java")
+				{ 
+					files.push_back(iterator->path().filename().string());
+					count++;
+				}
+
+			++iterator; 
+        
+		}
+
+    int size = files.size();
+    cout << size << endl;
+    
+ofstream myfile;
+
+    myfile.open ("kimenet.txt");
+        
+        for(int i=0 ; i<size ; i++)
+        {
+            myfile << files[i]<<";"<<endl;
+        }
+
+    myfile.close();
+
+    return 0;
+
+}
+
+]]>
+        </programlisting>
+      </para>
+      <para>Egy osztályt így lehet leírni abban a csomagban először a válltozókat majd a metódusokat írjuk le. A láthatósági jeleket egyszerűen a név elé lehet írni. Ha egy egyságünk nem rendelkezik metódusokkal vagy változókkal akkor a hiányzó tag(ok) helyére () üres zárójelet kell rakni.</para>
+      <para>Az így megírt osztályokat már csak csomagokba kell rendeznünk. PL. így <command>Package.Q("sampleclient")(A, B, C, D, E);</command> Majd ami a legnagyobb kihívást jelentette meg kell határoznunk az osztálydiagrammon belül a tagok elhelyezkedését. Erre ebben a csomagban 2 lehetőségünk van pl. közvetlenül megadni -ezt a manual relatív elhelyzésnek nevezi-, hogy egymástól milyen irányban helyezkedjenek el. <command>J.w = H.e + (100, 0);</command> ( a w és az e angol égtájak ) ezt jó esetben csak 2 elemre kell alkalmazni utána átálhatunk a felhasználóbarátabb verzióra <command>topToBottom.midx(50)(L, K, M);</command> ezzel pl. függőlegesen tudjuk elrendezni középre igazítva elemenként. 50-es térközzzel. Arra is van lehetőség, hogy a láthatóságjelzőket kikapcsoljuk <command>Class_noVisibilityMarkers.L;</command>. Végül kirajzoltatjuk az az osztálydiagrammot <command>drawObjects(S, T, V);</command>. Most a linkeket kell kialakítanukn -a draw után működik- ez is egyszerűen megy <command>link(inheritance)(N.e -- K.w);</command> mek kell adnunk az összeköttetés nevét és azt, hogy mik között jöjjön létre és, hogy melyik oldalakat kösse össze(angol égtájak kezdőbetűje). A végeredményről nem tudtunk megfelelő képernyőmentést készíteni, de  <link xlink:href="https://github.com/BenyBalazs/Prog2Pdf/blob/master/robocar-1.pdf">itt</link> megtekinthető. És a teljes kód kb. 300 sor azt <link xlink:href="https://github.com/BenyBalazs/Prog2Pdf/blob/master/robocar.mp">itt</link> lehet megnézni. A végén <command>
+          mptopdf *a_bemeneti_fájl_neve*</command> parancsal lehet belőle pdf-et készíteni.
+      </para>
+    
+    </section>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+</chapter>                

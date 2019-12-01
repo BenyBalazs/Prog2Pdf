@@ -1,0 +1,90 @@
+ <chapter xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xi="http://www.w3.org/2001/XInclude" version="5.0" xml:lang="hu">
+  <info>
+    <title>Helló, Berners-Lee!</title>
+    <keywordset>
+      <keyword/>
+    </keywordset>
+  </info>
+
+   <section>
+     <title>A C++ és A java könyv összehasinlítása</title>
+     <para>Mind a két programozási nyelv Objektumorientált, ez azt jelenti, hogy remek egységekbe tudunk zárni adatokat támogatják az öröklést és az adatrejtést is. Ez azt jelenti, hogy az  adatok egy csoportjára (pl.bank vagy emberek) megtalálhatóak az osztályokban az összes szükséges változó és függvény. Az Objektumok célja a programozó életének a megkönnyítése, azomban vigyázni kell mert az objektumorentáltság egyúttal a program sebességéből is visszavesz. Ezeket az osztályokat C++ nylven a <command>class</command> szóval készíthetjük el. A java osztályok nélkül nem is képes létezni ezért annak a legkissebb egységei is maguk az osztályok. Ezeket az osztályokat lehet példányosítani mind a két nyelven azaz létrehozni belőlük egy válltozót pl. a <command>class Kecske-ből</command> létrehozzuk <command>Kecske Giza</command> objektumát. Az így létrehozott egyedek saját maguknak csinálnak egy változatot osztály válltozóiból. A függvények csak egyszer kerülnek bele a memóriába. A bennük lévő válltozókat <command>.-al vagy -> -al</command> módosíthatjuk és a hozzájuk rendelt függvényeket is ezzel érhetjük el. Például így elérhetjük <command>Giza.kor</command> válltozóját ami legyen egy int és módosíthatjuk is azt. Ugyan így meghívhatunk egy függvényt is <command>Giza.etet(20)</command> ami azt jelenti, hogy végrehajtja a függvényt és ami benne van. A hibák elkerülése végett érdemes a válltozókat private-ra állítani. C++ -ban úgy érjük el, hogy az osztálydeklarálást követően private: szó után felsoroljuk őket. Ez azt jelenti, hogy csak az adott osztály függvényei férnek hozzá a válltozókhoz ebben az esetben írnunk kell függvényeket melyekkel módosíthatóak valamint lekérhetőek a válltozók értékei. Ez a módszer azért jó mert akkor csak a megadott függvények segítségével érhetőek el a válltozók és nem lesz hiba pl. más érték kerül bele mint amit várnánk. Mind a 2 nyelvben ha nem állítjuk be public-ra a válltorzókat akkor private-lesz. Ez C++-ban public: untáni felsorolást jelent javában pedig bele kell írni a class nevébe tehát <command>class public Kecske</command>. A classon belüli válltozóknak adhatunk meg kezdőértéket, ha ezt nem tesszük meg akkor a kezdőérték c++-ban random lesz Javában pedig 0. Ezek hibázoz is vezethetnek később a program futás közben. Kezdőértéket többféleképpen is beállíthatunk: osztályon belül, példányosítás után a módosító függvény meghívásával (sok sor és feleselges lépések) vagy készíthetünk egyedi konstruktort is ami beállítja a példány értéketit. A konstruktor függvény akkor kapunk ha a class nevéből csinálunk a classon belül egy függvényt. pl<command>Kecske(int kor, string nem){this->kor = kor; this->nem = nem;}</command>. Ha ezt a függvényt elkészítettük akkor a következőképp példányosíthatunk: Kecske Giza(12, fiu);. Ha már itt tartunk akkor beszéljünk egy kicsit a függvényekről. Mindkét nyelvben lehet függvényt és eljárást is írni ezek hasonlóképpen működnek. Javában a függvényeket amik nem az osztályokhoz tratoznak akkor azt a main alá kell írni . Ügyelnünk kell arra is, hogy mi a fájlunk neve Javában ugyanis a fájlnévnek meg kell eggyezni annak az osztályank a nevével ami tartalamzza a main függvényt. És most minderre nézzünk egy példát. 
+      <programlisting>
+<![CDATA[ package example;
+
+class Kecske{
+	
+	Kecske(int kor, String gize){
+		System.out.println("Valami");
+	}
+	
+	public int example(){
+		int something = 2;
+		return something;
+	}
+
+}
+
+public class example1 {
+
+	public static void main(String[] args) {
+		Kecske Gize = new Kecske(12, "Gize"); 
+		int pelda = Gize.example();
+		System.out.println(pelda);
+
+	}
+
+}]]>
+      </programlisting>
+      Egy nagy külömbség a két nyelv között, hogy C++-ban a függvényparamétereknek lehet alapértelmezett értéket beállítani, Javában erre nincs lehetőség. Erre is nézzünk egy gyors példát. 
+      <programlisting>
+        <![CDATA[ 
+        //C++
+        int fuggveny(int number1=3,int number2=2){
+          ...
+          return something;
+        }
+        //Java
+        int fuggveny(int number1,int number2){
+          ...
+          return something;
+        }
+        ]]>
+      </programlisting> Beszéljünk egy kicsit a memóriakezelésről. A java nyelv megalkotásakor az volt a fejlesztők eggyik fő szmpontja, hogy a pointereket használatát megtiltják. Erre a döntésre azért jutottak mert a legtöbb programban a memóriakezelés van a legjobban elrontava. A java kód sokkal optimalizáltabb mint egy alap C++ kód. Javában megtalálható az úgynevezett garbage collection tehát a nyelv minden olyan objektumot ki fog takarítani a memódiából ami elérhetetlen, tehát nem mutat rá semmi. Ez a funkció nem csak autómatikusan hívódhat meg. Amennyiben igényt tartunk rá mi is felhívhatjuk a fogyelmet arra, hogy itt most kifejezetten szeretnénk kiüríteni a szemetet. A System.gc();-vel kérhetjük meg a JVM-et, hogy hajtsa végre a műveletet. -Felmerülhet jogosan a kérdés, hogy mi is pontosan a JVM ezért most arról is ejtek egy-két szót. A JVM fogja futtatni a Java programok bytecode-ját és alakítja át hardwere specifikus utasításokká ez teszi a javát platformfüggetlen nyelvvé.-C++-ban ilyenre nincs lehetőség ott nekünk kell szenvedni a memóriakezeléssel és a mutatók használatával. Ezek után elmondhatjuk, hogy javában a mamóriakezelés autómatikusan megy. A két nylev szintaxisáról eddig nem esett szó. Alapvetően a két nyelv szintaxisa nagyon hasonló ugyan úgy ;-vel vannak elválasztva az utasítások stb. Amit én kifejezetten szerettem a javában az az, hogy amikor beleütköztem egy problémába akkor gyorsabban találtam megoldást rá az interneten mint C++ esetében. Java nyelv alapból több függvény van mint a C++-ban rengeteg dolog meg van benne előre írva. Ez nagyon megkönnyíti a munkát. Java használatakor nem sokszor szorulunk 3rd party könyvtárak használatára hiszen minden bele van építve a nyelvbe a grafikától kezdve a hálózatprogramozásig. Javában a kifejezéseket mindíg balról jobbra értékeljük ki ellentétben a c++-al ahol a részkifejezésekre nincs ilyen sorrend megadva. Javában a parancssori argumentumokat String tömbbe olvassuk be még C++ char tömbbe. Ezért javában pl. a parancssori argumentumokat is könnyebb használni. Javában minden függvény virtuális C++-ban viszont a függvényeket egy virtual kucsszóval kell ellátni, hogy virtuálisak legyenek. A virtual azt jelenti, hogy a gyermek osztály az adott metódust felül tudja definiálni. Mindkét nyelvben megtalálható az úgynevezett kivételkezelés. Javában pl. minden hiba a Throwable osztályból öröklődik. Kivételek akkor dobódnak, ha valami nem megfelelő a program számára. Mondjuk a fájl amit be kéne olvasni nincs meg stb. javában pls fájlból való beolvasást nem is lehet írni try catch block nélkül mert a fordító nem engedi. Le kell kezelni az IOExeption-t. A beépített osztályoknak megvannak a sáját kivételeik azomban nekünk is van lehetőségünk van hibát dobni a throw kulcsszó használatával.
+      <programlisting><![CDATA[ 
+        //java pelda
+        try {
+          BufferedReader inputStream = new BufferedReader(new FileReader("be2.txt"));
+          ...
+       }catch(Exception e) {System.out.println(e.printStackTrace())}
+        ]]></programlisting> Javában a try catch-en felül arra is van lehetőségünk, hogy finally blockot írjunk. Ez a try catch után fog mindíg lefutni akár el lett valami dobva akár nem. Mindkét nyelvben megtalálhatóak a dinamikus adatszerkezetek. javában ArrayList-nek nevezik amég C++-ban vektornak. Ezek használatahoz Javában importolni kell  java.util.ArrayList;-et még c++ ban include-olni kell a <![CDATA[<vector>]]>-t. Javában is található ugyan vector de azt a gyakorlatban nem igazán használják már csak azért sem mert amikor párhuzamosítunk akkor a szinkronizált vectoron csak 1 szál tud dolgozni még az ArrayListen több. ArrayListhez elemeket a .add() függvénnyel lehet hozzáadni és az elemeket a .get() függvénnyel nézhetjük meg. C++-ban a *vector*.push_back()-el lehet elemeket hozzáadni és egyszerüen *vector*[i] elemére hivatkozhatunk.
+        <programlisting>
+        <![CDATA[ 
+        //java pelda
+        ArrayList<String> cars = new ArrayList<String>();
+            cars.add("Volvo");
+            cars.add("BMW");
+            cars.add("Ford");
+            cars.add("Mazda");
+            System.out.println(cars);
+
+            //c++pelda
+            vector<string> g1;
+              g1.push_back("Volvo");
+              g1.push_back("BMW");
+              g1.push_back("MAZDA");
+
+        ]]>
+        </programlisting>
+   </para>
+   </section>
+
+   <section>
+    <title>A python nyelv bemutatása</title>
+    <para>A python rengeteg eszközön elérhető programozási nyelv. A python kódok futtatásához nincs szükség fordításra ezeket interpreter végzi. Általában nyelv azért is egyszerű mert itt nem kell minden sor után ; -rakni hiszen minden utasítás a sor végéig tart. A tagolásokat itt enerekkel és tabokkal lehet elvégezni. Természetesen itt is vannak előre lefogalalt szavak.  Ebben a nyelvben is vannak változók természetesen. Itt nem kell nekünk előre megondani, hogy mi is lesz az adott válltozó, azt majd az interpreter kitalálja abból, hogy mit rendeltünk adott esetben a válltozóhoz (számot betűt stb.). Érdekes adattípusokkal találkozhatunk a python nyelvben. Ilyenek pl. a listák. Ezekben bármennyi elemet felsorolhatunk és nem kell azonosaknak lennie ez azt jelenti, hogy lehetnek benne stringek, számok, tizedestörtek stb. Vannak a Tuple-ök amik lényegében rendezett lezárt listát alkotnak. Ezek foxek amég a listához hozzá lehet fűzni és elemeket válltoztatni addig itt ez nem lehetséges minden elem fix csak csinálni és törölni lehet őket. Nos, hogy mi éppen melyiket csináltuk az attól függ, hogy milyen zárójelet használtunk. () sima zárójellel a Tuple-öket lehet létrehozni. Tehát egy példa goat = (21 'male' 2)  hatunk is dolgokat a listát [] kapcsoszárójellel hozzuk létre. Ezek érdekes lehetőségeket biztosítanak. Szótárakat is létrehozhatunk itt minden elemhez hozzárendelhetünk saját nevet amivel hivatkozhatunk rá tehát nem kell mondjuk kecske[2] vel hivatkozni hanem mondjuk létrehozzuk a kecske szótárat kecske = {"weight":21, "gender" : "male" , "age" : 3} és akkor itt hivatkozhatunk az értékekre a revükkel ezeket is lehet válltoztatni. A pythonban találhatunk rengeteg beépített függvényt is ami megkönnyíti a gyors és eredményes munkát. Függvények terén a már megszokottak itt is jelen vannak if while for stb. Itt figyelni kell, hogy nem {}-el jelöljük, hogy meddig tart hanem behúzásokkal amiket vagy tab vagy szóközzel rakhatunk le. Fontos, hogy egységes legyen a tagolás tehát minden egybetartozó rész ugyan annyira legyen behúzva. Tehát egy for ciklust a következőképp írhatunk be <programlisting language="C++"><![CDATA[for x in goat : 
+      print x]]></programlisting>
+      A pythonban osztályokat is könnyedén létrehozhatunk a class kulcsszóval valamint függvényeket a def kulcszóval működési elvük szinte ugyan az mint a óz eddig tanult programozási nyelveké csak a függvény paramétereknél pl nem kell megadni, hogy milyen lesz mert azt majd a kapott adatokbók ki fogja találni. A classoknál lehetőség van az öröklésre is. A könyv nem igazán tér ki az osztályokra igazán mélyen. Hibakezelésre is van lehetőségünk mégpedik aa try: valamint az expect: parancsok használatával. A pythonban is működik a már eddig használt kivételkezelés  A python nyelvhez rendkívül sok modult lehet letölteni ami szintén megkönnyíti a fejlesztést. A könyv ezután példákat mutat a fent említett dolgokra. 
+</para> 
+  </section>
+
+</chapter>

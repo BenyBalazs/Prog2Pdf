@@ -1,0 +1,599 @@
+<chapter xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xi="http://www.w3.org/2001/XInclude" version="5.0" xml:lang="hu">
+    <info>
+        <title>Helló, Stroustrup!</title>
+        <keywordset>
+            <keyword/>
+        </keywordset>
+    </info>
+
+    <section>
+        <title>JDK osztályok</title>
+        <para></para>
+      <para><programlisting language="C++">
+          <![CDATA[
+#include <boost/filesystem.hpp>  
+#include <iostream> 
+#include <vector>
+#include <cstdlib>          
+using namespace std;
+
+int main(int ac, char** av)
+{
+    string extension;
+    vector<string> files;
+    boost::filesystem::recursive_directory_iterator iterator (string("/mnt/d/src"));
+    while(iterator != boost::filesystem::recursive_directory_iterator())
+		{
+			string extension = boost::filesystem::extension(iterator->path().filename());
+
+				if (boost::filesystem::is_regular_file(iterator->path()) && extension == ".java")
+				{ 
+					files.push_back(iterator->path().filename().string());
+				}
+			++iterator;   
+		}
+]]> </programlisting> 
+        </para>
+      <para>Ebben a feladatban boostot használva kellett kiiratni a jdk osztályokat. Ezek én a windwos-os jdk 13 osztályokat választottam. Az elején includeoljuk is be a boost filesystemet. Létrehozunk egy Stringet ez majd később hasznos lesz. Az osztályok nevét egy vektorba fogjuk beletölteni. Megadjuk a az elérési utat. A while ciklusunk azt csinálja, hogy végigmegy az összes mappán rekurzívan. A string válltozónkban eltároljuk a fájlok kiterjesztését tehát ebben a stringben csupa .java lesz. Ezzel megkatuk a .java fájlokat. Itt adódott egy probléma miszerint az src tartalmazott egy mappát ami szintén .java volt és aprogramunk ezt is beleszámolta. Ezt kiküszöbölendő nem elég megnéznünk azt, hogy .java a fájl azt is néznünk kell, hogy eggyáltalán fájl e amit nézünk ezt hivatott végrehajtani az is_regular_file függvény a boostban. Az így kapott értékeket beletöltjük a vektorunkba.  </para>
+      <para>
+  <programlisting><![CDATA[
+  <programlisting language="C++">
+    int size = files.size();
+    cout << size << endl;
+    
+ofstream myfile;
+
+    myfile.open ("kimenet.txt");
+        
+        for(int i=0 ; i<size ; i++)
+         {
+             myfile << files[i]<<";"<<endl;
+         }
+
+    myfile.close();
+
+    return 0;
+
+}
+
+]]> </programlisting>
+      </para>
+      <para>A vektorunk pontosan annyi elemet fog tartalmazni amennyi osztály van szóval elég csak azt kiiratni valamint, hogy fancy-k legyünk az összes osztály nevét kimentjük egy fájlba.</para>
+    </section> 
+  
+  <section>
+    <title>Változó argumentumszámú ctor</title>
+    <para></para>
+    <para>
+      <programlisting>
+        <![CDATA[
+#include <iostream>
+#include <cstdarg>
+#include <map>
+#include <iterator>
+#include <cmath>
+#include <random>
+#include <limits>
+#include <fstream>
+
+class Perceptron
+{
+public:
+  Perceptron ( int nof, ... )
+  {
+    n_layers = nof;
+
+    units = new double*[n_layers];
+    n_units = new int[n_layers];
+
+    va_list vap;
+
+    va_start ( vap, nof );
+
+    for ( int i {0}; i < n_layers; ++i )
+      {
+        n_units[i] = va_arg ( vap, int );
+
+        if ( i )
+          units[i] = new double [n_units[i]];
+      }
+
+    va_end ( vap );
+
+    weights = new double**[n_layers-1];
+
+#ifndef RND_DEBUG
+    std::random_device init;
+    std::default_random_engine gen {init() };
+#else
+    std::default_random_engine gen;
+#endif
+
+    std::uniform_real_distribution<double> dist ( -1.0, 1.0 );
+
+    for ( int i {1}; i < n_layers; ++i )
+      {
+        weights[i-1] = new double *[n_units[i]];
+
+        for ( int j {0}; j < n_units[i]; ++j )
+          {
+            weights[i-1][j] = new double [n_units[i-1]];
+
+            for ( int k {0}; k < n_units[i-1]; ++k )
+              {
+                weights[i-1][j][k] = dist ( gen );
+              }
+          }
+      }
+  }
+
+  Perceptron ( std::fstream & file )
+  {
+    file >> n_layers;
+
+    units = new double*[n_layers];
+    n_units = new int[n_layers];
+
+    for ( int i {0}; i < n_layers; ++i )
+      {
+        file >> n_units[i];
+
+        if ( i )
+          units[i] = new double [n_units[i]];
+      }
+
+    weights = new double**[n_layers-1];
+
+    for ( int i {1}; i < n_layers; ++i )
+      {
+        weights[i-1] = new double *[n_units[i]];
+
+        for ( int j {0}; j < n_units[i]; ++j )
+          {
+            weights[i-1][j] = new double [n_units[i-1]];
+
+            for ( int k {0}; k < n_units[i-1]; ++k )
+              {
+                file >> weights[i-1][j][k];
+              }
+          }
+      }
+  }
+
+
+  double sigmoid ( double x )
+  {
+    return 1.0/ ( 1.0 + exp ( -x ) );
+  }
+
+
+  double* operator() ( double image [] )
+  {
+
+    units[0] = image;
+
+    for ( int i {1}; i < n_layers; ++i )
+      {
+
+#ifdef CUDA_PRCPS
+
+        cuda_layer ( i, n_units, units, weights );
+
+#else
+
+        #pragma omp parallel for
+        for ( int j = 0; j < n_units[i]; ++j )
+          {
+            units[i][j] = 0.0;
+
+            for ( int k = 0; k < n_units[i-1]; ++k )
+              {
+                units[i][j] += weights[i-1][j][k] * units[i-1][k];
+              }
+
+            units[i][j] = sigmoid ( units[i][j] );
+
+          }
+
+#endif
+
+      }
+
+    for (int i = 0; i < n_units[n_layers - 1]; i++)
+        image[i] = units[n_layers - 1][i];
+    
+    return image;
+
+  }
+
+  void learning ( double image [], double q, double prev_q )
+  {
+    double y[1] {q};
+
+    learning ( image, y );
+  }
+
+  void learning ( double image [], double y[] )
+  {
+    //( *this ) ( image );
+
+    units[0] = image;
+
+    double ** backs = new double*[n_layers-1];
+
+    for ( int i {0}; i < n_layers-1; ++i )
+      {
+        backs[i] = new double [n_units[i+1]];
+      }
+
+    int i {n_layers-1};
+
+    for ( int j {0}; j < n_units[i]; ++j )
+      {
+        backs[i-1][j] = sigmoid ( units[i][j] ) * ( 1.0-sigmoid ( units[i][j] ) ) * ( y[j] - units[i][j] );
+
+        for ( int k {0}; k < n_units[i-1]; ++k )
+          {
+            weights[i-1][j][k] += ( 0.2* backs[i-1][j] *units[i-1][k] );
+          }
+
+      }
+
+    for ( int i {n_layers-2}; i >0 ; --i )
+      {
+
+        #pragma omp parallel for
+        for ( int j =0; j < n_units[i]; ++j )
+          {
+
+            double sum = 0.0;
+
+            for ( int l = 0; l < n_units[i+1]; ++l )
+              {
+                sum += 0.19*weights[i][l][j]*backs[i][l];
+              }
+
+            backs[i-1][j] = sigmoid ( units[i][j] ) * ( 1.0-sigmoid ( units[i][j] ) ) * sum;
+
+            for ( int k = 0; k < n_units[i-1]; ++k )
+              {
+                weights[i-1][j][k] += ( 0.19* backs[i-1][j] *units[i-1][k] );
+              }
+          }
+      }
+
+    for ( int i {0}; i < n_layers-1; ++i )
+      {
+        delete [] backs[i];
+      }
+
+    delete [] backs;
+
+  }
+
+  ~Perceptron()
+  {
+    for ( int i {1}; i < n_layers; ++i )
+      {
+        for ( int j {0}; j < n_units[i]; ++j )
+          {
+            delete [] weights[i-1][j];
+          }
+
+        delete [] weights[i-1];
+      }
+
+    delete [] weights;
+
+    for ( int i {0}; i < n_layers; ++i )
+      {
+        if ( i )
+          delete [] units[i];
+      }
+
+    delete [] units;
+    delete [] n_units;
+
+  }
+
+  void save ( std::fstream & out )
+  {
+    out << " "
+        << n_layers;
+
+    for ( int i {0}; i < n_layers; ++i )
+      out << " " << n_units[i];
+
+    for ( int i {1}; i < n_layers; ++i )
+      {
+        for ( int j {0}; j < n_units[i]; ++j )
+          {
+            for ( int k {0}; k < n_units[i-1]; ++k )
+              {
+                out << " "
+                    << weights[i-1][j][k];
+
+              }
+          }
+      }
+
+  }
+
+private:
+  Perceptron ( const Perceptron & );
+  Perceptron & operator= ( const Perceptron & );
+
+  int n_layers;
+  int* n_units;
+  double **units;
+  double ***weights;
+
+};
+
+    ]]>
+      </programlisting>
+    </para>
+    <programlisting>
+      <![CDATA[
+        #include <iostream>
+#include "mlp.hpp"
+#include <png++/png.hpp>
+#include <fstream>
+
+int main (int argc, char **argv)
+{
+    png::image <png::rgb_pixel> png_image (argv[1]);
+    int size = png_image.get_width() * png_image.get_height();
+    Perceptron* p = new Perceptron (3, size, 256, size);
+    
+    double* image = new double[size];
+    ]]>
+    </programlisting>
+    <para>Most láthatjuk a konstruktorban, hogy tényleg nem fogunk a képünkből 1 értéketvisszakapni hanem az átadott képet fogjuk visszakapni hiszen ezt adtuk meg. A konstruktort így kell értelmezni: mennyi argumentum lesz és utána felsorolva az argumentumok: bemeneti kép mérete 256-os érték -amire le lesz szűkítve a kép- valamint a kimenet mérete.</para>
+    <programlisting>
+      <![CDATA[
+    for (int i {0}; i<png_image.get_width(); ++i)
+        for (int j {0}; j<png_image.get_height(); ++j)
+            image[i*png_image.get_width() +j] = png_image[i][j].red;
+
+    double* newimage = (*p) (image);
+
+    for (int i = 0; i<png_image.get_width(); ++i)
+        for (int j = 0; j<png_image.get_height(); ++j)
+            png_image[i][j].blue = newimage[i*png_image.get_width()+j];
+
+    png_image.write("output.png");
+    delete p;
+    delete [] image;
+}
+    ]]>
+    </programlisting>
+    <para>Végigmegyünk a kép szélességén és magasságán és az image tömbbe beletesszük a megfelelő red értéket. Létrehozunk egy új image-et. A következő for ciklussal felülírjuk a blue értékeket. Végül kimentjük az új képet és felszabadítjuk a memóriát. A double* egy tömböt térít vissza mert a hpp-ben átírtuk. Ennek segítségével tutunk belenyúlni a képbe. A header file ban a konstruktoron módosítottunk, hogy változó argumentumszámú legyen valamint a double () operátorát átalakítottuk, hogy egy tömbel térjen vissza. Ez a tömb nem más lesz mint a units tömb. </para>
+
+    <para>
+        <mediaobject>
+        <imageobject>
+            <imagedata fileref="output.png" scale="40" align="left"></imagedata>
+        </imageobject>
+    </mediaobject>
+</para>
+  </section>
+  
+    
+    <section>
+        <title>Összefoglaló extends Hibásan implementált RSA törése</title>
+        <para>Az RSA lényege, hogy fogunk egy matamatikai eljátást amit az eggyik irányba egyszerű végrehajtani, ami jelen esetben 2 db nagy prím szám szorzása. Ezt összeszorozni egyszerű viszont a szorzatból visszafejteni az eredeti számokat nem, és jelenleg sincs erre megoldás ha elég nagy számot használunk. Az RSA titkosítás 2 kulcsból ákk egy publikusból és egy titkosból. A publikus kulcs a szorzat amivel bárki kódolhat szabadon de a privát kulcsot a két hatalmas prímszámot titokban tartjuk és ezzel dekódoljuk az üzeneteket.  RSA val egy küldés úgy működik, hogy a küldő megkapja a publikus kulcsot ezzel titkosítja az üzenetét amit elküld és ezt a másik oldalon a fogadó fél a privát kulcsal már rögtön tudja is dekódolni. Ez a módszer sokszor lassú ezért ritkábban hasznájlák a felhasználók adatainak a titkosítására. Erre vannak gyorsabb megoldások is. Elég a meséből nézzük a kódot(kat). A kódolás java segítségével oldottuk meg.</para>
+   <programlisting><![CDATA[
+import java.math.BigInteger;
+import java.security.SecureRandom; 
+import java.util.*;
+    
+
+public class RSA {
+   private final static BigInteger one  = new BigInteger("1");
+   private final static SecureRandom random = new SecureRandom();
+
+   private BigInteger privateKey;
+   private BigInteger publicKey;
+   private BigInteger modulus;
+
+   // generate an N-bit (roughly) public and private key
+   RSA(int N) {
+      BigInteger p = BigInteger.probablePrime(N/2, random);
+      BigInteger q = BigInteger.probablePrime(N/2, random);
+      BigInteger phi = (p.subtract(one)).multiply(q.subtract(one));
+    ]]> </programlisting>
+      <para>Használjuk a BigInteger java osztály hiszen itt hatalmas zsámokkal fogunk dolgozni amit a sima integer nem tud feldolgozni mert forfítási hibát kaptam. Valamint a SecureRandom osztályt is használatba vettün amit egy titkosításhoz kellő erősségű random számot generál nekünk. Létre is hozzuk a változóinkat. A p és a q  2 benga nagy random valószínüleg prímszám amit a BigInteger.probablePrime() függvénnnyel hoztunk létre a függvény 1. paramétere a bithosszúság a másik meg random bitek amiket arra használ, hogy prímeket válasszon. A végén visszaad egy valószínüleg prím számot. A phi az a két szám-1 összeszorozva. </para>
+    <programlisting><![CDATA[
+      modulus    = p.multiply(q);                                  
+      publicKey  = new BigInteger("65537");
+      privateKey = publicKey.modInverse(phi);
+   }
+   ]]> </programlisting>
+      <para>Megtörténik a 2 nagy prímszám szorzása ezt fogjuk modulusként használni. Megadunk egy konkrét publikus kulcsot amit bárki használhat. A privát kulcs az nekünk fontos ezt is kiszámoljuk a mod.Inverse. Ez fogja a publikus kulcsot és a reciprokán végrehajtja a modulot a phi értékével.</para>
+
+      
+<programlisting><![CDATA[
+   BigInteger encrypt(byte[] bytes) {
+       BigInteger swap = new BigInteger(bytes);
+        return swap.modPow(publicKey, modulus);
+   }
+]]> </programlisting>
+      <para>Ez a függvény végzi a titkosítást fontos, hogy byte tömmböt fogunk titkosítani. Létrehozunk egy BigInteger amit vissza fogunk téríteni de még előtte egy kicsit átalakítjuk. Tehát mi kost a bytokat fogjuk a publikus kulcsal maghatványozni végül modulo műveletet is végrehatjuk vele a modulus értékével.</para>
+ <programlisting><![CDATA[
+   public static void main(String[] args) {
+	   
+    int N = Integer.parseInt(args[0]);
+    RSA key = new RSA(N);
+]]> </programlisting>
+      <para>Az N értéket parancssorról kajuk meg és ezzel az értékkel példányosítjuk az RSA osztályt.</para>
+<programlisting><![CDATA[
+    String s = "Yetbedanyfortravellingassistanceindulgenceunpleasing";
+    byte[] bytes = s.getBytes();
+    BigInteger message = new BigInteger(bytes);
+    List<BigInteger> result = new ArrayList<BigInteger>();
+    byte[] atmenet = new byte[1];
+    for(int i = 0; i < bytes.length; i++)
+    {
+        atmenet[0] = bytes[i];
+        result.add(key.encrypt(atmenet));
+    }
+    System.out.println(result);
+   }
+}
+    ]]> </programlisting>
+    <para>A String s lesz a titkosítandó szöveg amit bytokká alakítunk a getBytes() függvénnyel. Ezt beletöltjük egy BigInteger-be. Most jön az érdekes rész, hiszen mi elrontottuk az RSA kódolónkat, hogy ne egyben titkosítson mindent hanem minden egyes szót titkosítson külön külön. Ehez létre kell hoznunk egy átmeneti tömböt amit a függvényünk el tud fogadni. tehát végigmegyünk a kódolandó szavunkon és mindegyik elemére külön meghívjuk a kódoló függvényünket és ezt az eredmény ArrayList-be töltjük bele. Ez lényegében olyan mint C++-ba a vektor. A legvégén kiírjuk az eredményt. A program kimenetét mostmár át is tudjuk adni a törőnknek. Nézzük a törőt.</para>
+<programlisting><![CDATA[
+class KulcsPar{
+    
+	  private String values;
+    private char key = '_';
+    private int freq = 0;
+    
+    public KulcsPar(String str, char k){
+        this.values = str;
+        this.key = k;
+    }
+
+    public KulcsPar(String str){
+        this.values = str;
+    }
+
+    public void setValue(String str){
+        this.values = str;
+    }
+
+    public void setKey(char k){
+        this.key = k;
+    }
+
+    public String getValue(){
+        return this.values;
+    }
+
+    public char getKey(){
+        return this.key;
+    }
+
+    public void incFreq(){
+        freq += 1;
+    }
+
+    public int getFreq(){
+        return freq;
+    }
+
+}
+    ]]> </programlisting>
+      <para>A kódolt karaktereket osztályba fogjuk tölteni. Ez fog tárolni kódolt értéket, a betű előfordulását illetve a valószínűség alapján feltételezett karaktert. Ehez tartozik 1 konstruktor illetve eggyértelmű függvények amiknek a nevük a megáért beszél. Most nézzük a program main részét. lényegében set és get metódusok. Az egész egy try catch bolkba van mert a java csak így ened fájlból olvasni.</para>
+<programlisting><![CDATA[
+import java.io.*;
+
+class RsaTores {
+    public static void main(String[] args) {
+        try {
+            BufferedReader inputStream = new BufferedReader(new FileReader("be2.txt"));
+            int lines = 0;
+
+            String line[] = new String[10000];
+
+            while((line[lines] = inputStream.readLine()) != null) {
+                lines++;
+            }
+
+            inputStream.close();
+]]> </programlisting>
+      <para>Fájlból beolvassunk az előző program kimenetét csinálunk egy jó nagy tömböt amibe valószínüleg bel fog férni minden és amég van bejövő adata addig pumpáljuk is bele valamint növeljük a számlálót, hogy tudjuk is, hogy mennyit olvastunk be. Ha végeztünk akkor bezárjuk a fájlt.</para>
+<programlisting><![CDATA[
+            KulcsPar kp[] = new KulcsPar[100];
+
+            boolean volt = false;
+            kp[0] = new KulcsPar(line[0]);
+            int db = 1;
+
+            for(int i = 1; i < lines; i++) {
+                volt = false;
+                for(int j = 0; j < db; j++) {
+                    if(kp[j].getValue().equals(line[i])) {
+                        kp[j].incFreq();
+                        volt = true;
+                        break;
+                    }
+                }
+
+                if(volt == false) {
+                    kp[db] = new KulcsPar(line[i]);
+                    db++;
+                }
+            }
+]]> </programlisting>
+      <para>Létrehozun egy tömböt ami KulcsPár osztály példányait fogja tartalmazni. Ennek a 0. elemét rögtön be is állítjuk ai egy új KulcsPár lesz és a konstruktort meghívtuk a a line tömb 0 elemére. For ciklussal végigmegyünk a beolvasott sorokon. A forciklusba ágyazunk még egy forciklust ami addig megy amég el nem éri a db válltozó értékét. Ha a kp tömb adott eleme megeggyezik a beolvasot sor aktuális elemével akkor az adott érték gyakoriságát növeljük, valamint feljegyezzük, hogy ilyen van,majd kilépünk a ciklusból. Ha nics talált érték akkor készítünk egy új példányt és növeljük a darabszámot. </para>
+<programlisting><![CDATA[
+            for(int i = 0; i < db; i++) {
+                for(int j = i + 1; j < db; j++) {
+                    if(kp[i].getFreq() < kp[j].getFreq() ) {
+                        KulcsPar temp = kp[i];
+                        kp[i] = kp[j];
+                        kp[j] = temp;
+                    }
+                }
+            }
+]]> </programlisting>
+      <para>Ez a dupla ciklus a sorbarendezi a példányokat a gyakoriság értékük apalján.</para>
+<programlisting><![CDATA[
+            FileReader f = new FileReader("angol.txt");
+
+            char[] key = new char[60];
+            int kdb=0;
+            int k;
+
+            while((k = f.read()) != -1) {
+                if((char)k != '\n') {
+                    key[kdb] = (char)k;
+                    //System.out.println(key[kdb]);
+                    kdb++;
+                }
+            }
+
+            f.close();
+            ]]> </programlisting>
+      <para>Most beolvassuk a karaktereinket amihez egy új filereaderre lesz szükségünk. A bemeneti adatokat is egy tömbbe fogjuk tárolni valamint csak akkor ha az a sor nem egy üressor valamint növeljük a karakterek darabszámát.</para>
+            <programlisting><![CDATA[
+            for(int i = 0; i < kdb && kp[i] != null; i++) {
+                kp[i].setKey(key[i]);
+            }
+            ]]> </programlisting>
+      <para>Szépen feltötjük a az osztályaink key változóit a darabszámig. Ha null értéket találunk akkor egyből megállunk.</para>
+<programlisting><![CDATA[
+
+            for(int i = 0; i < lines; i++) {
+                for(int j = 0; j < db; j++) {
+                    if(line[i].equals(kp[j].getValue())) {
+                        System.out.print(kp[j].getKey());
+                    }
+                }
+            }
+
+        } catch(IOException e) {
+        }
+
+    }
+
+}
+
+    ]]> </programlisting>
+      <para>A legvégén pedig kiiirjuk a megfelelő key értékeket és így elméletileg vissza is kapjuk a szöveget. Ez elméletben szép és jó de valójában meg se közelítjük az eredeti söveget. Ehez egy alap angol abc betűgyakoriságot használtunk ami eltérhet a szövegétől. Ha ismerjük a szöveg pontos betűgyakoriságát akkor több az esélyünk de a végeredmény akkor sem lesz kielégítő.</para>
+            <para>        
+          <mediaobject>
+          <imageobject>
+            <imagedata fileref="RSA_kodolas.png" scale="50" align="center"></imagedata>
+          </imageobject>
+        </mediaobject></para>
+        <para>        
+          <mediaobject>
+          <imageobject>
+            <imagedata fileref="RSA_tores.png" scale="70" align="center"></imagedata>
+          </imageobject>
+        </mediaobject></para>
+    </section> 
+</chapter>                
