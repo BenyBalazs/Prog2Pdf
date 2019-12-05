@@ -40,11 +40,15 @@ def main(_):
   W = tf.Variable(tf.zeros([784, 10]))
   b = tf.Variable(tf.zeros([10]))
   y = tf.matmul(x, W) + b
-
   y_ = tf.placeholder(tf.float32, [None, 10])
-
   cross_entropy= tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits = y, labels=y_))
   train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
+
+  ]]>       
+</programlisting>
+<para>Az elején definiáljuk a függvényt ami segítségével beolvassuk a képet. Itt eszközölni kellett egy módsoítás, hiszen a fügvénynek szüksége lenne a color-chenelek számára ami alapból nem volt megadva ez később hibához is vezetett. Ide be kellett szúrni egy 1 -es hiszen grayscale-es képpel fogunk dolgozni. Utána létrehozzuk a modellt. Az x az egy placeholder lesz. Ez alapból az értéke nincs meghatározva, akkor lesz amikor a program számolni fog vele. A W a súly a b pedig a bias. A biast arra használja a model, hogy az adatokhoz legjobban passzoljon. Ezek jó nagy tensorok tele 0-ás értékkel. Az értéket majd tanulás közbe fogják megkapni. Az y-nál tf.matmul() függvény összeszorozza az x-et és a W majd még hozzáadjuk a b-t. Végül az y_ szintén egy placeholder lesz. </para>
+<programlisting >
+  <![CDATA[ 
 
   sess = tf.InteractiveSession()
   # Train
@@ -56,11 +60,11 @@ def main(_):
     if i % 100 == 0:
       print(i/10, "%")
   print("----------------------------------------------------------")
-  ]]>
-            
+  ]]>       
         </programlisting>
-        <para>A legelején definiált függvényel fogjuk a saját kézzel rajzolt 8-as unkat beolvasni. Itt volt egy nagy hiba ami lentebb az image.reshape() függvénynél hibát írt ki és nem futott le. Ezt úgy lehetett kiküszöbölni, hogy a tf.image.decode_png()-nek megadtuk a color-chanel-ek számát. Ez 1 lesz hiszen a program grayscale-es képpel működik. Utána létrehozunk egy modelt. Itt is eszközölmi kellett egy módisítást. Mégpedig ezt:<command>cross_entropy= tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits = y, labels=y_))</command> Itt nem kellett sokat keresgélni a hiba forrását hiszen megmondta az interpreter, hogy mire kell átírni az eredeti kódot.</para>
-        <programlisting ><![CDATA[ 
+        <para>Itt is eszközölmi kellett egy módisítást. Mégpedig ezt:<command>cross_entropy= tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits = y, labels=y_))</command> Itt nem kellett sokat keresgélni a hiba forrását hiszen megmondta az interpreter, hogy mire kell átírni az eredeti kódot. A tanítást 1000 lépésben fogjuk megtanítani a számokat. Minden egyes lépésben 100 banch-et kap.</para>
+        <programlisting >
+          <![CDATA[ 
   # Test trained model
   print("-- A halozat tesztelese")  
   correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
@@ -85,7 +89,7 @@ def main(_):
   ]]>
             
         </programlisting>
-        <para>Betanítjuk a hálózatot az mnsit saját példasorozatával, majd leteszteljük. A tesztelés Felismertetjük vele a 42. tesztképet.</para>
+        <para>A betanított hálózatot teszteljük, mégpedig úgy, hogy felismertetjük vele a 42. tesztképet.</para>
         <programlisting ><![CDATA[ 
   
   print("-- A sajat kezi 8-asom felismerese, mutatom a szamot, a tovabblepeshez csukd be az ablakat")
@@ -130,7 +134,7 @@ if __name__ == '__main__':
     <section>
         <title>Deep MIST</title>
         <para></para>
-<para>A tensorflow alap méyltanulásos példáját kellett egy összefűzni a fenti 8-a felismerő résszel. Ebben a páldában szintén az MNISt számokat tartalmazó adatbázisával fogjuk betanítani a számítógépet</para>
+<para>A tensorflow alap méyltanulásos példáját kellett egy összefűzni a fenti 8-a felismerő résszel. Ebben a páldában szintén az MNISt számokat tartalmazó adatbázisával fogjuk betanítani a számítógépet. Ez sokkal pontosabb eredményt tud adni mint a sima mnist.</para>
 <programlisting><![CDATA[ 
     def readimg():
         file = tf.io.read_file("sajat8a.png")
@@ -138,10 +142,20 @@ if __name__ == '__main__':
         return img]]></programlisting>
         <para>A programhoz először is hozzáfűzzük az ekőző feladatban használt képbeolvasós függvényt. Ugyan úgy decodeoljuk a grayscale-elt képet.</para>
         <programlisting><![CDATA[ 
-            ...
-            ...
-            ...
+def weight_variable(shape):
+  """weight_variable generates a weight variable of a given shape."""
+  initial = tf.truncated_normal(shape, stddev=0.1)
+  return tf.Variable(initial)
 
+
+def bias_variable(shape):
+  """bias_variable generates a bias variable of a given shape."""
+  initial = tf.constant(0.1, shape=shape)
+  return tf.Variable(initial)
+
+          ]]></programlisting>
+          <para>Külön függvényt használtunk a bias és a súlyok kiszámítására. Mind a két függvény egy Tensort fog visszatéríteni.</para>
+          <programlisting><![CDATA[ 
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
         for i in range(20000):
@@ -169,7 +183,7 @@ if __name__ == '__main__':
         #saver.restore(sess, "model.ckpt")
         print("-- Ezt a halozat ennek ismeri fel: ", classification[0])
         print("----------------------------------------------------------")]]></programlisting>
-        <para>Majd a Session alá ügyelve a behúzásokra behúzzuk az előző kódból a képfelismerős részt. Ugyan úgy kiválasztjuk a leginkább a bemeneti képhez hasonló képet a classification-el. Láthatjuk, hogy a tanítási a forckilusban történik ami 20000-szer fut le. Az előző példa azonnali futása helyett itt a tanulás jóval több időt vesz igénybe ez a számítások bonyolultágából adódik. Nálam szerencsére nem volt vészes 12-15 perc alatt simán lement.</para>
+        <para>Majd a Session alá ügyelve a behúzásokra behúzzuk az előző kódból a képfelismerős részt. Ugyan úgy kiválasztjuk a leginkább a bemeneti képhez hasonló képet a classification-el. Láthatjuk, hogy a tanítási a forckilusban történik ami 20000-szer fut le. Az előző példa azonnali futása helyett itt a tanulás jóval több időt vesz igénybe ez a számítások bonyolultágából adódik. Nálam szerencsére nem volt vészes 12-15 perc alatt simán lement. </para>
         <para>
             <mediaobject>
               <imageobject>
@@ -177,6 +191,13 @@ if __name__ == '__main__':
               </imageobject>
             </mediaobject>
           </para>
+          <para>
+              <mediaobject>
+                <imageobject>
+                  <imagedata fileref="modell.png" scale="25" align="center"></imagedata>
+                </imageobject>
+              </mediaobject>
+            </para>
     </section> 
 
     <section>

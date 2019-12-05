@@ -54,6 +54,7 @@
       </para>
     </xi:fallback>
   </xi:include>
+  
   <xi:include href="bhax-textbook-feladatok2-godel.xml">
     <xi:fallback>
       <para>

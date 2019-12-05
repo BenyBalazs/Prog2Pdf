@@ -75,7 +75,7 @@
             }
             ]]>
         </programlisting>
-        <para>Az elején a template arra szolgál, hogy átvegye a tipust pl. a vektornak <![CDATA[<int>,<string>]]>. Utána áll a struktúra neve, hogy meg tudjuk majd hívni. A memória lefoglalását az allocate végzi ami minden egyes lefutásnál az előzőnél 2* akkora helyet foglal le 4 8 16 32 és így továb. Az allocátorba nyomonkövető szövegeket is beépítettünk. A lefoglalt memória a dealloc nélkül le is marad foglalva tehát folyamatosan többet fog lefoglaln, ha viszont megírjuk a deallocatort akkor csak az aktuálisan használt memória marad lefoglalva a többi felszabadul. Végül létrehozzuk a vektorunkat aminek megadjuk a costum allocunkat és push_back() elünk bele egy keveset.</para>
+        <para>Az elején a template arra szolgál, hogy átvegye a tipust pl. a vektornak <![CDATA[<int>,<string>]]>. Utána áll a struktúra neve, ezzel tudjuk majd hívni a costum alloc-unkat. A using-ok azt jelentik, hogy az utána lévő nevet fogjuk használni az =-jel után álló helyett, tehát ha majd beírjuk, hogy pointer akkor a T*-ra fogunk gondolni. A memória lefoglalását az allocate végzi ami minden egyes lefutásnál az előzőnél 2* akkora helyet foglal le 4 8 16 32 és így továb. A char* p egy NUL-terminated demangled név kezdetére mutat. Lényegében megmutatja, hogy a typeid (T).name() mögött mi rejlik valójában. Az allocátorba nyomonkövető szövegeket is beépítettünk. A lefoglalt memória a dealloc nélkül le is marad foglalva tehát folyamatosan többet fog lefoglaln, ha viszont megírjuk a deallocatort akkor csak az aktuálisan használt memória marad lefoglalva a többi felszabadul. Végül létrehozzuk a vektorunkat aminek megadjuk a costum allocunkat és push_back() elünk bele egy keveset.</para>
         
         <para>
           <mediaobject>
@@ -90,7 +90,7 @@
         <title>STL map érték szerinti rendezése </title>
         <para>
         </para>
-      <para>Ebben a feladatba az volt a lényeg, hogy a programunk a map-ot ne a kulcsa alapján rendezze, hanem az érték mező szerint. Ehez létrehozunk egy parit vektort amibe előbb mindent átpakolunk, majd ennek az elemeit fogjuk rendezni csökkenő sorrendben lambda kifejezéssel, végül betölteni az ordered vektorba. És a végén visszatérítjük az ordered vektort.
+      <para>Ebben a feladatba az volt a lényeg, hogy a programunk a map-ot ne a kulcsa alapján rendezze, hanem az érték mező szerint. Ehez létrehoztuk az ordered vektort amibe string int párokat fogjukn rakni. A for ciklus fogja ebbe belepakolni az elemeket a map-ből, de csak azokat melyekhez tartozik második érték (ez a value). Sort funkciót lambda kifejezéssel írjuk meg ez végig fog menni az egész vektoron és az adatokat másolással fogja megkapni (Az egyenlőségjelből derül ki ami kapcsos zárójel között van). Láthatjuk, hogy a térképünket a  value értékével fogunk rendezni .secound. És a végén visszatérítjük az ordered vektort.
       </para>
       <programlisting language="C++">
         <![CDATA[std::vector<std::pair<std::string, int>> sort_map ( std::map <std::string, int> &rank )
@@ -134,7 +134,7 @@
     <section>
         <title>Alternatív Tabella rendezése </title>
         <para>
-          Azért van szükség java.lang Interface Comparable<![CDATA[<T>]]> mert a sort függvény ezt használja amikor rendez, ezeket az értékeket rendezésnél lehet kulcsként használni anélkül, hogy egy külön összehasonlítót adnánk meg. Nézzük meg a kódban, hogy erre miért is van szükség.
+          Azért van szükség java.lang Interface Comparable<![CDATA[<T>]]> mert ha az osztályunk implementálja ezt az interfae-t akkor az osztályban megírt compareTo metódussal fogja sorbarendezni a példányokat a program egy .sort()-olás esetén. A hasonlítónk úgy működik, hogy amenniyben az adott objektum érték változója kissebb mint azé amihez hasonlítjuk akkor -1-et térítünk vissza ha nagyobb akkor 1-et más esetben pedig 0-át. Ez alaján lesz majd a listákban a sorbarendezés.
         </para>
       <programlisting language="JAVA">
         <![CDATA[
@@ -163,7 +163,7 @@ public int compareTo(Csapat csapat) {
    return 0;
  }	]]>
       </programlisting>
-      <para>Tehát azért volt szükség implementálnia az osztálynak a comparable interfészt, hogy a java amikor rendezzük akkor ne az osztály hash code-ja alapján rendezzen hanem az általunk megírt CompareTo függvényel. És ha ezekből az objektumokból készítenénk egy listát vagy tömböt akkor a sort függvény a compare to alapján sorba is rendezi nekünk. Láthatjuk fent, hogy a rendezettCsapatok Listára meghívjuk a sortot.</para>
+      <para>Teheát, ha egy olyan objektumból készítünk ArrayListet ami ezt implementálja akkor simán tudjuk rendezni, vagy akár kulcsként is használhatóak egy Map-ben de elemek is lehetnek egy SortedSet-ben (Collection). Anélkül, hogy külön összehasonlító fügvényeket (Comperator) írnánk hozzájuk.</para>
       <para>
           <mediaobject>
           <imageobject>

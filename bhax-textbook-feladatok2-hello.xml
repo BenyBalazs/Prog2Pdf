@@ -222,7 +222,7 @@ void SamuCam::run()
     <section>
         <title>BrainB</title>
         <para></para>
-      <para>QT-ban a slot signalt küklömböző objektumok közötti kommunikációra használhatjuk. Ezek a függvények akkor fognak meghívódni ha bekövetkezik egy bizonyos esemény amiről kód küld egy emit-et. A megfelelő emit-et fogja befogni a connet .</para>
+      <para>QT-ban a slot signalt küklömböző objektumok közötti kommunikációra használhatjuk. Ezek a függvények akkor fognak meghívódni ha bekövetkezik egy bizonyos esemény amiről kód küld egy emit-et. A megfelelő emit-et fogja befogni a connet.</para>
         
 <programlisting language="java"><![CDATA[
 
@@ -232,6 +232,14 @@ void SamuCam::run()
         connect ( brainBThread, SIGNAL ( endAndStats ( int ) ),
                   this, SLOT ( endAndStats ( int ) ) );
                   ]]></programlisting>
+<para>Amennyiben az új szintaktikával szeretnénk ezt megírni arra is van nyilván lehetőség.</para>
+<programlisting><![CDATA[ 
+connect ( brainBThread, &BrainBThread::heroesChanged ,
+            this, &BrainBWin::updateHeroes );
+
+connect ( brainBThread, &BrainBThread::endAndStats,
+            this, &BrainBWin::endAndStats );
+]]></programlisting>
       <para>A fogadó helyet megjelöljük és a SIGNAL() függvényben megadjuk, hogy milyen paramétereket várunk a heroesChanged jeltől, ezt melyik objektumnak továbbítsuk és a SLOT za, hogy mit továbbítunk jelen azt, hogy fusson le az updateHeroes()-a kapott paraméterekkel. A másik connect is hasonlóan működik. Ott a befejező időt fogja megkapni int-ben. Az endAndStat leállítja a programot és kiírja, hogy az alábbi könyvtárban találod a végeredményt.</para>
       <para>
           <mediaobject>

@@ -64,7 +64,7 @@ ofstream myfile;
   <section>
     <title>Változó argumentumszámú ctor</title>
     <para></para>
-    <para>
+    <para>Először tisztázzuk mi is az a perceptron nos ez a legegyszerűbb neurális hálózat.</para>
       <programlisting>
         <![CDATA[
 #include <iostream>
@@ -206,6 +206,11 @@ public:
 
   }
 
+  ]]>
+</programlisting>
+<para>A double* egy tömböt térít vissza mert a hpp-ben átírtuk. Ennek segítségével tutundjuk visszaadni a képet. Ezzen egy image tömböt fogunk feldolgozni. Megfogyelhetjük, hogy a ciklusaink párhuzamosítva vannak a gyorsabb futás érdekében.</para>
+<programlisting><![CDATA[ 
+
   void learning ( double image [], double q, double prev_q )
   {
     double y[1] {q};
@@ -332,7 +337,6 @@ private:
 
     ]]>
       </programlisting>
-    </para>
     <programlisting>
       <![CDATA[
         #include <iostream>
@@ -349,7 +353,7 @@ int main (int argc, char **argv)
     double* image = new double[size];
     ]]>
     </programlisting>
-    <para>Most láthatjuk a konstruktorban, hogy tényleg nem fogunk a képünkből 1 értéketvisszakapni hanem az átadott képet fogjuk visszakapni hiszen ezt adtuk meg. A konstruktort így kell értelmezni: mennyi argumentum lesz és utána felsorolva az argumentumok: bemeneti kép mérete 256-os érték -amire le lesz szűkítve a kép- valamint a kimenet mérete.</para>
+    <para>Most láthatjuk a konstruktorban, hogy tényleg nem fogunk a képünkből 1 értéket visszakapni hanem az átadott képet fogjuk visszakapni hiszen ezt adtuk meg. A konstruktort így kell értelmezni: layerek száma majd a súlyok száma, rejtett rétegek száma és végül a kimenet.</para>
     <programlisting>
       <![CDATA[
     for (int i {0}; i<png_image.get_width(); ++i)
@@ -368,7 +372,7 @@ int main (int argc, char **argv)
 }
     ]]>
     </programlisting>
-    <para>Végigmegyünk a kép szélességén és magasságán és az image tömbbe beletesszük a megfelelő red értéket. Létrehozunk egy új image-et. A következő for ciklussal felülírjuk a blue értékeket. Végül kimentjük az új képet és felszabadítjuk a memóriát. A double* egy tömböt térít vissza mert a hpp-ben átírtuk. Ennek segítségével tutunk belenyúlni a képbe. A header file ban a konstruktoron módosítottunk, hogy változó argumentumszámú legyen valamint a double () operátorát átalakítottuk, hogy egy tömbel térjen vissza. Ez a tömb nem más lesz mint a units tömb. </para>
+    <para>Végigmegyünk a kép szélességén és magasságán és az image tömbbe beletesszük a megfelelő red értéket. Létrehozunk egy új image-et. A következő for ciklussal felülírjuk a blue értékeket. Végül kimentjük az új képet és felszabadítjuk a memóriát.</para>
 
     <para>
         <mediaobject>
@@ -382,7 +386,7 @@ int main (int argc, char **argv)
     
     <section>
         <title>Összefoglaló extends Hibásan implementált RSA törése</title>
-        <para>Az RSA lényege, hogy fogunk egy matamatikai eljátást amit az eggyik irányba egyszerű végrehajtani, ami jelen esetben 2 db nagy prím szám szorzása. Ezt összeszorozni egyszerű viszont a szorzatból visszafejteni az eredeti számokat nem, és jelenleg sincs erre megoldás ha elég nagy számot használunk. Az RSA titkosítás 2 kulcsból ákk egy publikusból és egy titkosból. A publikus kulcs a szorzat amivel bárki kódolhat szabadon de a privát kulcsot a két hatalmas prímszámot titokban tartjuk és ezzel dekódoljuk az üzeneteket.  RSA val egy küldés úgy működik, hogy a küldő megkapja a publikus kulcsot ezzel titkosítja az üzenetét amit elküld és ezt a másik oldalon a fogadó fél a privát kulcsal már rögtön tudja is dekódolni. Ez a módszer sokszor lassú ezért ritkábban hasznájlák a felhasználók adatainak a titkosítására. Erre vannak gyorsabb megoldások is. Elég a meséből nézzük a kódot(kat). A kódolás java segítségével oldottuk meg.</para>
+        <para>Az RSA lényege, hogy fogunk egy matamatikai eljátást amit az eggyik irányba egyszerű végrehajtani, ami jelen esetben 2 db nagy prím szám szorzása. Ezt összeszorozni egyszerű viszont a szorzatból visszafejteni az eredeti számokat nem, és jelenleg sincs erre megoldás ha elég nagy számot használunk. Az RSA titkosítás 2 kulcsból áll egy publikusból és egy titkosból. A publikus kulcs a szorzat amivel bárki kódolhat szabadon de a privát kulcsot a két hatalmas prímszámot titokban tartjuk és ezzel dekódoljuk az üzeneteket.  RSA val egy küldés úgy működik, hogy a küldő megkapja a publikus kulcsot ezzel titkosítja az üzenetét amit elküld és ezt a másik oldalon a fogadó fél a privát kulcsal már rögtön tudja is dekódolni. Ez a módszer sokszor lassú ezért ritkábban hasznájlák a felhasználók adatainak a titkosítására. Erre vannak gyorsabb megoldások is. Elég a meséből nézzük a kódot(kat). A kódolás java segítségével oldottuk meg.</para>
    <programlisting><![CDATA[
 import java.math.BigInteger;
 import java.security.SecureRandom; 
@@ -403,7 +407,7 @@ public class RSA {
       BigInteger q = BigInteger.probablePrime(N/2, random);
       BigInteger phi = (p.subtract(one)).multiply(q.subtract(one));
     ]]> </programlisting>
-      <para>Használjuk a BigInteger java osztály hiszen itt hatalmas zsámokkal fogunk dolgozni amit a sima integer nem tud feldolgozni mert forfítási hibát kaptam. Valamint a SecureRandom osztályt is használatba vettün amit egy titkosításhoz kellő erősségű random számot generál nekünk. Létre is hozzuk a változóinkat. A p és a q  2 benga nagy random valószínüleg prímszám amit a BigInteger.probablePrime() függvénnnyel hoztunk létre a függvény 1. paramétere a bithosszúság a másik meg random bitek amiket arra használ, hogy prímeket válasszon. A végén visszaad egy valószínüleg prím számot. A phi az a két szám-1 összeszorozva. </para>
+      <para>Használjuk a BigInteger java osztály hiszen itt hatalmas számokkal fogunk dolgozni amit a sima integer nem tud feldolgozni mert forfítási hibát kaptam. Valamint a SecureRandom osztályt is használatba vettük amit egy titkosításhoz kellő erősségű random számot generál nekünk. Létre is hozzuk a változóinkat. A p és a q  2 benga nagy random valószínüleg prímszám amit a BigInteger.probablePrime() függvénnnyel hoztunk létre a függvény 1. paramétere a bithosszúság a másik meg random bitek amiket arra használ, hogy prímeket válasszon. A végén visszaad egy valószínüleg prím számot. A phi az a két szám-1 összeszorozva. </para>
     <programlisting><![CDATA[
       modulus    = p.multiply(q);                                  
       publicKey  = new BigInteger("65537");
@@ -419,7 +423,8 @@ public class RSA {
         return swap.modPow(publicKey, modulus);
    }
 ]]> </programlisting>
-      <para>Ez a függvény végzi a titkosítást fontos, hogy byte tömmböt fogunk titkosítani. Létrehozunk egy BigInteger amit vissza fogunk téríteni de még előtte egy kicsit átalakítjuk. Tehát mi kost a bytokat fogjuk a publikus kulcsal maghatványozni végül modulo műveletet is végrehatjuk vele a modulus értékével.</para>
+      <para>Ez a függvény végzi a titkosítást fontos, hogy byte tömmböt fogunk titkosítani. Létrehozunk egy BigInteger amit vissza fogunk téríteni de még előtte egy kicsit átalakítjuk. Tehát mi most a bytokat fogjuk a publikus kulcsal maghatványozni végül modulo műveletet is végrehatjuk vele a modulus értékével.
+      </para>
  <programlisting><![CDATA[
    public static void main(String[] args) {
 	   
@@ -442,7 +447,7 @@ public class RSA {
    }
 }
     ]]> </programlisting>
-    <para>A String s lesz a titkosítandó szöveg amit bytokká alakítunk a getBytes() függvénnyel. Ezt beletöltjük egy BigInteger-be. Most jön az érdekes rész, hiszen mi elrontottuk az RSA kódolónkat, hogy ne egyben titkosítson mindent hanem minden egyes szót titkosítson külön külön. Ehez létre kell hoznunk egy átmeneti tömböt amit a függvényünk el tud fogadni. tehát végigmegyünk a kódolandó szavunkon és mindegyik elemére külön meghívjuk a kódoló függvényünket és ezt az eredmény ArrayList-be töltjük bele. Ez lényegében olyan mint C++-ba a vektor. A legvégén kiírjuk az eredményt. A program kimenetét mostmár át is tudjuk adni a törőnknek. Nézzük a törőt.</para>
+    <para>A String s lesz a titkosítandó szöveg amit bytokká alakítunk a getBytes() függvénnyel. Ezt beletöltjük egy BigInteger-be. Most jön az érdekes rész, hiszen mi elrontottuk az RSA kódolónkat, hogy ne egyben titkosítson mindent hanem minden egyes betűt titkosítson külön külön. Ehhez létre kell hoznunk egy átmeneti tömböt amit a függvényünk el tud fogadni. Tehát végigmegyünk a kódolandó szavunkon és mindegyik elemére külön meghívjuk a kódoló függvényünket és ezt az eredmény ArrayList-be töltjük bele. Ez lényegében olyan mint C++-ba a vektor. A legvégén kiírjuk az eredményt. A program kimenetét mostmár át is tudjuk adni a törőnknek. Nézzük a törőt.</para>
 <programlisting><![CDATA[
 class KulcsPar{
     
@@ -485,7 +490,7 @@ class KulcsPar{
 
 }
     ]]> </programlisting>
-      <para>A kódolt karaktereket osztályba fogjuk tölteni. Ez fog tárolni kódolt értéket, a betű előfordulását illetve a valószínűség alapján feltételezett karaktert. Ehez tartozik 1 konstruktor illetve eggyértelmű függvények amiknek a nevük a megáért beszél. Most nézzük a program main részét. lényegében set és get metódusok. Az egész egy try catch bolkba van mert a java csak így ened fájlból olvasni.</para>
+      <para>A kódolt karaktereket osztályba fogjuk tölteni. Ez fog tárolni kódolt értéket, a betű előfordulását illetve a valószínűség alapján feltételezett karaktert. Ehhez tartozik 1 konstruktor illetve eggyértelmű függvények amiknek a nevük a megáért beszél lényegében set és get metódusok. Most nézzük a program main részét. Az egész egy try catch bolkba van mert a java csak így ened fájlból olvasni.</para>
 <programlisting><![CDATA[
 import java.io.*;
 
@@ -503,7 +508,7 @@ class RsaTores {
 
             inputStream.close();
 ]]> </programlisting>
-      <para>Fájlból beolvassunk az előző program kimenetét csinálunk egy jó nagy tömböt amibe valószínüleg bel fog férni minden és amég van bejövő adata addig pumpáljuk is bele valamint növeljük a számlálót, hogy tudjuk is, hogy mennyit olvastunk be. Ha végeztünk akkor bezárjuk a fájlt.</para>
+      <para>Fájlból beolvassunk az előző program kimenetét csinálunk egy jó nagy tömböt amibe valószínüleg bele fog férni minden és amég van bejövő adata addig pumpáljuk is bele valamint növeljük a számlálót, hogy tudjuk is, hogy mennyit olvastunk be. Ha végeztünk akkor bezárjuk a fájlt.</para>
 <programlisting><![CDATA[
             KulcsPar kp[] = new KulcsPar[100];
 
@@ -527,7 +532,7 @@ class RsaTores {
                 }
             }
 ]]> </programlisting>
-      <para>Létrehozun egy tömböt ami KulcsPár osztály példányait fogja tartalmazni. Ennek a 0. elemét rögtön be is állítjuk ai egy új KulcsPár lesz és a konstruktort meghívtuk a a line tömb 0 elemére. For ciklussal végigmegyünk a beolvasott sorokon. A forciklusba ágyazunk még egy forciklust ami addig megy amég el nem éri a db válltozó értékét. Ha a kp tömb adott eleme megeggyezik a beolvasot sor aktuális elemével akkor az adott érték gyakoriságát növeljük, valamint feljegyezzük, hogy ilyen van,majd kilépünk a ciklusból. Ha nics talált érték akkor készítünk egy új példányt és növeljük a darabszámot. </para>
+      <para>Létrehozun egy tömböt ami KulcsPár osztály példányait fogja tartalmazni. Ennek a 0. elemét rögtön be is állítjuk ami egy új KulcsPár lesz és a konstruktort meghívtuk a line tömb 0 elemére. For ciklussal végigmegyünk a beolvasott sorokon. A forciklusba ágyazunk még egy forciklust ami addig megy amég el nem éri a db válltozó értékét. Ha a kp tömb adott eleme megeggyezik a beolvasot sor aktuális elemével akkor az adott érték gyakoriságát növeljük, valamint feljegyezzük, hogy ilyen van, masjd kilépünk a ciklusból. Ha nics talált érték akkor készítünk egy új példányt és növeljük a darabszámot. </para>
 <programlisting><![CDATA[
             for(int i = 0; i < db; i++) {
                 for(int j = i + 1; j < db; j++) {
